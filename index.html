@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta property="og:title" content="Тест для пар: насколько хорошо вы знаете друг друга?">
+<meta property="og:description" content="Проходите вдвоём с одного телефона за 10 минут и сразу получаете разбор вашей пары.">
+<meta name="robots" content="noindex">
+<title>Тест для пар</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+html,body{margin:0}
+/* Layout: одна карточка-экран, как мобильное приложение. Светлая тема: сиренево-серый фон, белые карточки, поля в цветных подложках, кнопки-таблетки. Партнёр 1 — тёплый рыжий (Кнопка), партнёр 2 — сиреневый */
+:root{
+  --bg:#f2f1f7;--surface:#ffffff;--ink:#25242a;--muted:#6b6a78;--line:#e7e5ef;
+  --a:#f0743a;--a-soft:#fff0e7;--a-line:#f8c9ad;
+  --b:#6f7ff0;--b-soft:#eef0ff;--b-line:#c3caf8;
+  --accent:var(--a);--accent-soft:var(--a-soft);--accent-line:var(--a-line);
+  --smoke:#8a95a8;--ginger:#f0743a;--pink:#e8578a;--gold:#d4a23a;--good:#2f9a62;--good-soft:#e4f5ec;--bad:#d14a4a;--bad-soft:#fde9e9;
+  --font-display:"Unbounded","Manrope",system-ui,sans-serif;--font-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+.app[data-who="B"]{--accent:var(--b);--accent-soft:var(--b-soft);--accent-line:var(--b-line)}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:18px 40px}
+.app{max-width:500px;margin:0 auto}
+h1,h2{font-family:var(--font-display);text-wrap:balance;margin:0;line-height:1.2;letter-spacing:-.01em}
+h1{font-size:1.6rem}h2{font-size:1.2rem}
+h1 em{font-style:normal;color:var(--b)}
+p{margin:0}
+.muted{color:var(--muted)}.small{font-size:.9rem}
+.card{background:var(--surface);border-radius:28px;padding:22px;display:grid;gap:16px;box-shadow:0 8px 30px rgba(60,55,110,.07)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;min-height:30px}
+.who{font-size:.8rem;font-weight:800;padding:6px 12px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.who.both{background:#fff;color:var(--muted)}
+.bar{flex:1;height:8px;border-radius:999px;background:#fff;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s}
+.count{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700}
+.btn{font:inherit;font-weight:800;font-size:1.05rem;border:0;border-radius:999px;padding:16px 20px;cursor:pointer;background:var(--accent);color:#fff;width:100%;box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 30%,transparent)}
+.btn:disabled{opacity:.35;cursor:default;box-shadow:none}
+.btn.ghost{background:#fff;color:var(--muted);box-shadow:none;border:1.5px solid var(--line)}
+.btn:focus-visible,.opt:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.row .btn.ghost{flex:0 0 38%}
+.opts{display:grid;gap:10px}
+.opt{font:inherit;text-align:left;background:#f7f6fb;color:var(--ink);border:1.5px solid transparent;border-radius:18px;padding:14px 16px;cursor:pointer;display:flex;gap:10px;align-items:center;font-weight:600}
+.opt:hover{border-color:var(--line)}
+.opt[aria-pressed="true"]{border-color:var(--accent-line);background:var(--accent-soft);color:var(--ink)}
+.pairs{display:grid;gap:10px}
+.pair{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch}
+.pair .or{align-self:center;font-size:.72rem;font-weight:800;color:var(--muted)}
+.pair .opt{justify-content:center;text-align:center;font-size:.92rem;padding:12px 8px}
+.ns{display:grid;gap:4px}
+.nsrow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.nsrow:last-child{border-bottom:0}
+.nsbtns{display:flex;gap:6px}
+.nsbtns .opt{padding:9px 12px;font-size:.86rem;font-weight:800;border-radius:999px}
+.nsbtns .opt.no[aria-pressed="true"]{border-color:#f3b7b7;background:var(--bad-soft)}
+.nsbtns .opt.yes[aria-pressed="true"]{border-color:#a9dcc0;background:var(--good-soft)}
+.field{display:grid;gap:2px;padding:12px 16px;border-radius:18px;border:1.5px solid var(--a-line);background:var(--a-soft)}
+.field.b{border-color:var(--b-line);background:var(--b-soft)}
+.field label{font-size:.82rem;color:var(--muted)}
+.field input{font:inherit;font-size:1.1rem;border:0;background:transparent;padding:2px 0;color:var(--ink);outline:none}
+textarea{font:inherit;width:100%;padding:14px 16px;border-radius:18px;border:1.5px solid var(--accent-line);background:var(--accent-soft);color:var(--ink);min-height:110px;resize:vertical}
+.range{display:grid;gap:8px}
+.range input{width:100%;accent-color:var(--accent)}
+.range .ends{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);gap:12px}
+.range .val{font-family:var(--font-display);font-size:1.8rem;text-align:center;color:var(--accent)}
+.sub{font-size:.8rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.check{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:.86rem;cursor:pointer;color:var(--muted)}
+.check input{width:18px;height:18px;margin-top:2px;accent-color:var(--b)}
+.hero-cats{width:210px;max-width:100%;margin:0 auto;display:block}
+.center{text-align:center}
+.note{font-size:.86rem;padding:12px 14px;border-radius:16px;background:var(--b-soft);color:var(--muted)}
+pre.out{white-space:pre-wrap;word-break:break-word;font-size:.8rem;background:#f7f6fb;padding:12px;border-radius:14px;max-height:220px;overflow:auto;margin:0}
+
+.joint{display:grid;gap:14px}
+.jitem{padding:12px 0;border-bottom:1px solid var(--line);display:grid;gap:8px}
+.jitem:last-child{border-bottom:0}
+.jq{font-weight:700}
+.jrow{display:grid;grid-template-columns:64px 1fr 1fr;gap:6px;align-items:center}
+.jname{font-size:.78rem;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jname.a{color:var(--a)}.jname.b{color:var(--b)}
+.jrow .opt{justify-content:center;text-align:center;padding:9px 6px;font-size:.86rem;border-radius:999px}
+.jrow.a .opt[aria-pressed="true"]{border-color:var(--a-line);background:var(--a-soft)}
+.jrow.b .opt[aria-pressed="true"]{border-color:var(--b-line);background:var(--b-soft)}
+.reveal{display:grid;gap:12px}
+.score{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.score div{border-radius:20px;padding:14px;text-align:center}
+.score .a{background:var(--a-soft)}.score .b{background:var(--b-soft)}
+.score b{display:block;font-family:var(--font-display);font-size:1.6rem}
+.score .a b{color:var(--a)}.score .b b{color:var(--b)}
+.fact{padding:12px 14px;border-radius:16px;background:#f7f6fb;font-size:.95rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two input{min-width:0}
+.rep{display:grid;gap:14px}
+.arch{border-radius:24px;padding:20px;background:linear-gradient(135deg,var(--a-soft),var(--b-soft));display:grid;gap:8px;text-align:center}
+.arch .lbl{font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.arch h2{font-size:1.5rem}
+.days{font-size:.9rem;color:var(--muted)}
+.sec{display:grid;gap:10px;padding:0 16px 16px;border-radius:22px;background:#f7f6fb;overflow:hidden}
+.secimg{margin:0 -16px 2px;line-height:0}
+.sechead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.scene-wrap{border-radius:22px;overflow:hidden;line-height:0}
+.sech{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center}
+.sech svg{width:96px;height:64px}
+.sech .ttl{display:grid;gap:5px;min-width:0}
+.chip{justify-self:start;font-size:.74rem;font-weight:800;padding:4px 10px;border-radius:999px}
+.chip.happy{background:var(--good-soft);color:var(--good)}
+.chip.ok{background:var(--b-soft);color:var(--b)}
+.chip.grumpy{background:#fff1e0;color:#c46a12}
+.big{font-family:var(--font-display);font-size:1.15rem}
+.sec details{font-size:.9rem}
+.sec summary{cursor:pointer;font-weight:800;color:var(--b);list-style:none}
+.sec summary::-webkit-details-marker{display:none}
+.sec details[open] summary{margin-bottom:6px}
+.sec h3{font-family:var(--font-display);font-size:1rem;margin:0;font-weight:500}
+.sec p{font-size:.95rem}
+.meter{height:8px;border-radius:999px;background:#fff;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--a),var(--b))}
+.tip{font-size:.9rem;padding:10px 12px;border-radius:14px;background:#fff}
+.tip b{color:var(--b)}
+.quote{font-size:.95rem;padding:10px 12px;border-left:3px solid var(--a);background:#fff;border-radius:0 12px 12px 0}
+.quote.b{border-left-color:var(--b)}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+/* Иллюстрации Мишани и Кнопки, рисуются кодом (SVG). Сцены: hero, cuddle, window, makeup, backs, suitcase */
+var CATART=(function(){
+  var MG='url(#cmf)', KG='url(#ckf)', ink='#2b2f38', pinkIn='#f2c4c8', bibM='#eef0f4', bibK='#ffe4cf';
+  var DEFS='<defs><radialGradient id="cmf" cx="45%" cy="30%" r="75%"><stop offset="0" stop-color="#c3cad6"/><stop offset="1" stop-color="#7b869a"/></radialGradient>'+
+    '<radialGradient id="ckf" cx="45%" cy="30%" r="75%"><stop offset="0" stop-color="#ffb57a"/><stop offset="1" stop-color="#e8692b"/></radialGradient>'+
+    '<linearGradient id="csky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d3561"/><stop offset="1" stop-color="#6f7ff0"/></linearGradient></defs>';
+  function g(x,y,s,flip,inner){return '<g transform="translate('+x+' '+y+') scale('+(flip?-s:s)+' '+s+')">'+inner+'</g>'}
+
+  /* Мишаня: (0,0) — низ по центру. face: sleepy | smile | grumpy | neutral | away */
+  function misha(face,extra){
+    var away=face==='away', grumpy=face==='grumpy';
+    var h='';
+    h+='<path d="M-50 -18 C-84 -22 -88 -64 -62 -72 C-52 -74 -46 -64 -55 -59 C-68 -53 -64 -31 -42 -28 Z" fill="'+MG+'"/>';
+    h+='<path d="M-52 0 C-62 -38 -42 -66 0 -68 C42 -66 58 -34 48 0 Z" fill="'+MG+'"/>';
+    if(!away)h+='<path d="M-22 0 C-24 -26 -14 -40 0 -42 C14 -40 24 -26 22 0 Z" fill="'+bibM+'"/>';
+    else h+='<path d="M-20 -50 q20 -8 40 0 M-24 -36 q24 -8 48 0 M-26 -22 q26 -8 52 0" stroke="#6e788a" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>';
+    /* уши */
+    if(grumpy) h+='<path d="M-34 -104 L-62 -112 L-24 -124 Z M34 -104 L62 -112 L24 -124 Z" fill="'+MG+'"/>';
+    else h+='<path d="M-34 -104 L-42 -146 L-10 -120 Z M34 -104 L42 -146 L10 -120 Z" fill="'+MG+'"/>'+(away?'':'<path d="M-32 -108 L-37 -136 L-16 -118 Z M32 -108 L37 -136 L16 -118 Z" fill="'+pinkIn+'"/>')+
+      '<path d="M-42 -146 L-46 -158 M-42 -146 L-39 -157 M42 -146 L46 -158 M42 -146 L39 -157" stroke="#6e788a" stroke-width="2.6" stroke-linecap="round"/>';
+    h+='<path d="M-40 -76 C-46 -102 -30 -126 0 -128 C30 -126 46 -102 40 -76 C46 -60 28 -46 0 -46 C-28 -46 -46 -60 -40 -76 Z" fill="'+MG+'"/>';
+    if(away){ h+='<path d="M-8 -120 l3 12 M0 -122 v14 M8 -120 l-3 12" stroke="#6e788a" stroke-width="2.6" stroke-linecap="round"/>'; return h+(extra||''); }
+    h+='<path d="M-32 -66 C-36 -54 -22 -42 0 -42 C22 -42 36 -54 32 -66 C26 -54 12 -50 0 -50 C-12 -50 -26 -54 -32 -66 Z" fill="'+bibM+'"/>';
+    h+='<path d="M-6 -118 l2 10 M0 -120 v12 M6 -118 l-2 10" stroke="#6e788a" stroke-width="2.4" stroke-linecap="round"/>';
+    if(face==='sleepy')h+='<path d="M-24 -90 q8 6 16 0 M8 -90 q8 6 16 0" stroke="'+ink+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    else if(face==='smile')h+='<path d="M-24 -88 q8 -8 16 0 M8 -88 q8 -8 16 0" stroke="'+ink+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    else if(grumpy)h+='<path d="M-24 -90 h15 M9 -90 h15" stroke="'+ink+'" stroke-width="3" stroke-linecap="round"/><path d="M-26 -99 l14 4 M26 -99 l-14 4" stroke="'+ink+'" stroke-width="2.4" stroke-linecap="round"/>';
+    else h+='<circle cx="-15" cy="-90" r="5" fill="#d9a63a"/><circle cx="15" cy="-90" r="5" fill="#d9a63a"/><circle cx="-15" cy="-90" r="2.4" fill="'+ink+'"/><circle cx="15" cy="-90" r="2.4" fill="'+ink+'"/><circle cx="-13.5" cy="-91.5" r="1.2" fill="#fff"/><circle cx="16.5" cy="-91.5" r="1.2" fill="#fff"/>';
+    h+='<path d="M-4 -78 l4 4 l4 -4 Z" fill="#d98a96"/>';
+    h+=grumpy?'<path d="M-7 -66 q7 -5 14 0" stroke="'+ink+'" stroke-width="2" fill="none" stroke-linecap="round"/>':'<path d="M0 -74 v4 M0 -70 q-5 4 -9 1 M0 -70 q5 4 9 1" stroke="'+ink+'" stroke-width="2" fill="none" stroke-linecap="round"/>';
+    h+='<path d="M-30 -74 h-18 M-30 -70 l-16 5 M30 -74 h18 M30 -70 l16 5" stroke="#f4f5f8" stroke-width="1.5" stroke-linecap="round"/>';
+    if(face!=='grumpy')h+='<ellipse cx="-24" cy="-76" rx="6" ry="3.5" fill="#f2b4bd" opacity=".6"/><ellipse cx="24" cy="-76" rx="6" ry="3.5" fill="#f2b4bd" opacity=".6"/>';
+    h+='<ellipse cx="-18" cy="-2" rx="13" ry="7" fill="'+bibM+'"/><ellipse cx="18" cy="-2" rx="13" ry="7" fill="'+bibM+'"/>';
+    return h+(extra||'');
+  }
+  /* Кнопка: face: open | squint | happy | grumpy | away; glasses: true */
+  function knopka(face,opt){
+    opt=opt||{}; var away=face==='away';
+    var h='<path d="M24 -10 C50 -14 52 -46 34 -52" stroke="'+KG+'" stroke-width="9" fill="none" stroke-linecap="round"/>';
+    h+='<path d="M-24 0 C-30 -28 -16 -44 0 -45 C16 -44 30 -28 24 0 Z" fill="'+KG+'"/>';
+    if(!away)h+='<path d="M-10 0 C-10 -16 -6 -24 0 -25 C6 -24 10 -16 10 0 Z" fill="'+bibK+'"/>';
+    h+='<path d="M-20 -70 L-25 -96 L-5 -80 Z M20 -70 L25 -96 L5 -80 Z" fill="'+KG+'"/>'+(away?'':'<path d="M-18 -74 L-21 -89 L-9 -80 Z M18 -74 L21 -89 L9 -80 Z" fill="'+pinkIn+'"/>');
+    h+='<ellipse cx="0" cy="-60" rx="26" ry="23" fill="'+KG+'"/>';
+    h+='<path d="M-6 -80 l2 7 M0 -82 v8 M6 -80 l-2 7" stroke="#c8551e" stroke-width="2.2" stroke-linecap="round"/>';
+    h+='<path d="M-20 -42 q20 9 40 0" stroke="#e8578a" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="0" cy="-34" r="5" fill="#e3b341"/><path d="M-4 -35 h8" stroke="#b88a1e" stroke-width="1.2"/>';
+    if(away) return h;
+    var eye=function(cx){return '<ellipse cx="'+cx+'" cy="-60" rx="6.5" ry="7.5" fill="#2f9a62"/><ellipse cx="'+cx+'" cy="-59" rx="2.4" ry="5" fill="#1d2420"/><circle cx="'+(cx+2)+'" cy="-63" r="1.8" fill="#fff"/>'};
+    if(face==='open')h+=eye(-10)+eye(10);
+    else if(face==='squint')h+=eye(-10)+'<path d="M5 -59 q6 -4 12 0" stroke="'+ink+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    else if(face==='happy')h+='<path d="M-16 -58 q6 -7 12 0 M4 -58 q6 -7 12 0" stroke="'+ink+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    else if(face==='grumpy')h+='<path d="M-16 -59 h11 M5 -59 h11" stroke="'+ink+'" stroke-width="3" stroke-linecap="round"/><path d="M-18 -67 l10 3 M18 -67 l-10 3" stroke="'+ink+'" stroke-width="2.2" stroke-linecap="round"/>';
+    if(opt.glasses)h+='<rect x="-21" y="-67" width="17" height="11" rx="4" fill="#1d2420"/><rect x="4" y="-67" width="17" height="11" rx="4" fill="#1d2420"/><path d="M-4 -62 h8" stroke="#1d2420" stroke-width="2"/><path d="M-18 -65 l5 0" stroke="#fff" stroke-width="1.4" opacity=".6"/>';
+    h+='<path d="M-3 -51 l3 3 l3 -3 Z" fill="#e58a95"/>';
+    h+=face==='grumpy'?'<path d="M-5 -44 q5 -3 10 0" stroke="'+ink+'" stroke-width="1.6" fill="none" stroke-linecap="round"/>':'<path d="M0 -48 v2 M0 -46 q-4 3 -7 0 M0 -46 q4 3 7 0" stroke="'+ink+'" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
+    h+='<path d="M-18 -52 h-12 M18 -52 h12" stroke="#fff3e8" stroke-width="1.3" stroke-linecap="round"/>';
+    h+='<ellipse cx="-10" cy="-2" rx="8" ry="5" fill="'+bibK+'"/><ellipse cx="10" cy="-2" rx="8" ry="5" fill="'+bibK+'"/>';
+    return h;
+  }
+  function heart(x,y,s,c){return '<path transform="translate('+x+' '+y+') scale('+s+')" d="M0 0 c-4 -8 -16 -4 -12 5 c2 5 12 11 12 11 c0 0 10 -6 12 -11 c4 -9 -8 -13 -12 -5 Z" fill="'+(c||'#e8578a')+'"/>'}
+  function cloud(x,y){return '<g transform="translate('+x+' '+y+')"><path d="M-30 10 q-2 -16 14 -16 q6 -14 22 -8 q16 -6 20 10 q14 0 12 14 h-64 q-8 -2 -4 0 Z" fill="#c9cfdb"/><path d="M2 14 l-6 10 h7 l-5 11" stroke="#e3b341" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>'}
+  function shadow(x,w){return '<ellipse cx="'+x+'" cy="236" rx="'+w+'" ry="7" fill="#000" opacity=".07"/>'}
+  function wrap(bg,inner,label){return '<svg viewBox="0 0 400 250" role="img" aria-label="'+label+'" style="width:100%;height:auto;display:block">'+DEFS+'<rect width="400" height="250" fill="'+bg+'"/>'+inner+'</svg>'}
+
+  var S={};
+  /* Обложка: диван с пледом, Кнопка сидит у Мишани на спине */
+  S.hero=function(){
+    var h='<rect x="40" y="150" width="320" height="70" rx="22" fill="#d7d9e3"/><rect x="28" y="120" width="344" height="52" rx="24" fill="#c7cad8"/><rect x="40" y="200" width="320" height="36" rx="14" fill="#c2c5d3"/>';
+    h+='<path d="M210 150 q60 -10 120 6 l10 60 q-70 10 -140 -4 Z" fill="#e2b34a"/><path d="M228 160 l-6 50 M252 158 l-4 52 M276 158 l-2 54 M300 160 l0 54" stroke="#cf9d33" stroke-width="3"/>';
+    h+=g(170,212,1,false,misha('sleepy'));
+    h+=g(196,104,.62,false,knopka('squint'));
+    h+=heart(258,52,1.2)+heart(282,40,.7,'#f39ab5');
+    return wrap('#f6efe9',h,'Мишаня и Кнопка на диване');
+  };
+  /* Совпали: спят в обнимку */
+  S.cuddle=function(){
+    var h=shadow(200,120)+g(170,232,1,false,misha('sleepy'))+g(250,232,.78,true,knopka('happy'))+'<path d="M206 196 q34 10 58 -4" stroke="'+MG+'" stroke-width="16" fill="none" stroke-linecap="round"/><ellipse cx="262" cy="191" rx="10" ry="7" fill="'+bibM+'"/>';
+    h+=heart(214,40,1.3)+heart(240,24,.7,'#f39ab5')+'<text x="300" y="80" font-size="22" fill="#9aa3b5" font-family="sans-serif" font-weight="700">z z</text>';
+    return wrap('#fdeee6',h,'Мишаня и Кнопка спят в обнимку');
+  };
+  /* По-разному, но ок: на подоконнике, каждый смотрит в своё окно */
+  S.window=function(){
+    var h='<rect x="70" y="20" width="260" height="170" rx="14" fill="url(#csky)"/><path d="M200 20 v170 M70 105 h260" stroke="#f3f1f7" stroke-width="8"/><rect x="62" y="12" width="276" height="186" rx="18" fill="none" stroke="#f3f1f7" stroke-width="10"/>';
+    h+='<circle cx="290" cy="56" r="16" fill="#fff7d6"/><circle cx="296" cy="50" r="14" fill="#3a4277"/><circle cx="110" cy="50" r="2" fill="#fff"/><circle cx="150" cy="80" r="1.6" fill="#fff"/><circle cx="240" cy="40" r="1.8" fill="#fff"/><circle cx="170" cy="40" r="1.4" fill="#fff"/>';
+    h+='<rect x="40" y="196" width="320" height="18" rx="6" fill="#e9e4dc"/>';
+    h+=g(140,198,.8,true,misha('neutral'))+g(270,198,.7,false,knopka('open'));
+    return wrap('#eef0fb',h,'Мишаня и Кнопка на подоконнике');
+  };
+  /* Мирятся: Мишаня несёт Кнопке рыбку */
+  S.makeup=function(){
+    var fish='<g transform="translate(0 -60)"><path d="M10 0 q22 -14 44 0 q-22 14 -44 0 Z" fill="#8fc6e8"/><path d="M54 0 l12 -9 v18 Z" fill="#7ab4d8"/><circle cx="20" cy="-2" r="2.4" fill="#1d2420"/></g>';
+    var h=shadow(200,120)+g(150,232,1,false,misha('smile',fish))+g(290,232,.78,true,knopka('squint'));
+    h+=heart(232,70,.9)+heart(250,52,.6,'#f39ab5');
+    return wrap('#eaf6ef',h,'Мишаня несёт Кнопке рыбку');
+  };
+  /* Есть о чём поговорить: спиной друг к другу, носок на полу, тучка */
+  S.backs=function(){
+    var h=shadow(200,130)+g(140,232,1,false,misha('away'))+g(272,232,.8,false,knopka('away'));
+    h+='<path d="M196 230 q-8 -4 -6 -14 l4 -22 h14 l-2 20 q8 4 6 12 q-4 6 -16 4 Z" fill="#f4f4f6" stroke="#cfd3dc" stroke-width="2"/><path d="M193 196 h15" stroke="#e8578a" stroke-width="4"/>';
+    h+=cloud(205,40);
+    return wrap('#f2efe9',h,'Мишаня и Кнопка сидят спиной друг к другу');
+  };
+  /* Деньги: оба в чемодане, Кнопка в очках */
+  S.suitcase=function(){
+    var h=shadow(200,140)+g(160,214,.9,false,misha('smile'))+g(262,200,.82,false,knopka('happy',{glasses:true}));
+    h+='<rect x="70" y="170" width="260" height="66" rx="16" fill="#c9824a"/><rect x="70" y="170" width="260" height="14" rx="7" fill="#b06d38"/><rect x="180" y="196" width="40" height="12" rx="4" fill="#e3b341"/><path d="M110 170 v66 M290 170 v66" stroke="#b06d38" stroke-width="6"/>';
+    h+='<path d="M320 60 l6 -14 l6 14 l14 2 l-10 10 l3 14 l-13 -7 l-13 7 l3 -14 l-10 -10 Z" fill="#ffd36b"/><text x="40" y="60" font-size="34">✈️</text>';
+    return wrap('#e8f1fd',h,'Мишаня и Кнопка в чемодане');
+  };
+  return S;
+})();
+
+
+/* ===== ВОПРОСЫ =====
+   Часть 1 «вместе»: joint-вопросы на одном экране (оба видят ответы).
+   Часть 2 «тайно»: по очереди, ответы скрыты. guess — отвечаешь за себя и угадываешь партнёра.
+   Шкалы и источники: см. question_evidence.md */
+var JOINT = [
+  /* Близость (ECR-R; Joel 2020), быт (PREPARE/ENRICH), деньги (Dew 2012) */
+  {id:'q7', scale:'mix', type:'ns', text:'Норм или стрём?', hint:'Отвечайте вместе, спорить можно 😄', items:['Уехать на выходные с друзьями без второй половинки','Знать пароли от телефонов друг друга','Носки на полу до выходных','Посуда «отмокает» сутки','Купить дорогую вещь, не посоветовавшись','Спать в обнимку всю ночь']},
+  /* Планы и игра (Aron 2000; PREPARE/ENRICH) */
+  {id:'q11', scale:'plans', type:'pairs', text:'Быстрый выбор', hint:'Каждый тапает своё, не думая', items:[['Настолки 🎲','Сериал 🎬'],['Дом за городом 🏡','Центр города 🌆'],['Отпуск по плану','Куда глаза глядят'],['Тусовка','Вечер вдвоём'],['Встать в 6','Проспать до обеда']]}
+];
+var Q = [
+  /* Понимание партнёра — Love Maps (Gottman), точность (Fletcher & Kerr 2010) */
+  {id:'q1', scale:'understand', type:'guess', text:'Доставка привезёт только одно блюдо. Что ты закажешь?', opts:['Пиццу 🍕','Суши 🍣','Шаурму 🌯','Салатик 🥗','«То же, что и ты» 😇'], short:['пиццу','суши','шаурму','салатик','«то же, что и ты»']},
+  {id:'q2', scale:'understand', type:'guess', text:'Какая мелочь бесит тебя сильнее всего?', opts:['Медленный интернет','Чавканье рядом','Опоздания','Голосовые на 5 минут','Гора посуды в раковине'], short:['медленный интернет','чавканье','опоздания','длинные голосовые','гору посуды']},
+  /* Ссоры и примирение — Gottman 1998/2000, конфликт в топ-5 Joel 2020 */
+  {id:'q3', scale:'conflict', type:'guess', text:'После ссоры тебе нужно…', opts:['Обняться и проговорить сразу 🫂','Остыть пару часов 🧊','Чтобы принесли вкусняшку и сделали вид, что ничего не было 🍫','Поспать: утро вечера мудренее 😴'], short:['обняться и проговорить','остыть пару часов','вкусняшку и забыть','поспать']},
+  {id:'q4', scale:'conflict', type:'slider', text:'Кто у вас первым идёт мириться?', min:0, max:10, left:'чаще я', right:'чаще {P}'},
+  /* Поддержка — Gable 2004/2006, Algoe 2012, appreciation в топ-5 Joel 2020 */
+  {id:'q5', scale:'support', type:'guess', text:'Ты прибегаешь: «Меня повысили!» Какая реакция порадует тебя больше всего?', opts:['«Рассказывай всё!» 🎉','«Отмечаем!» 🍾','«А зарплату подняли?» 🤓','«Я знал(а), что так будет» 😌'], short:['«рассказывай всё!»','«отмечаем!»','«а зарплату подняли?»','«я знал(а)!»']},
+  {id:'q6', scale:'support', type:'slider', text:'Насколько ты чувствуешь, что твои старания для вас двоих замечают?', min:0, max:10, left:'«кто здесь?»', right:'«почти памятник ставят»'},
+  /* Близость и надёжность — ECR-R/ECR-S, воспринимаемая преданность №1 у Joel 2020 */
+  {id:'q8', scale:'closeness', type:'slider', text:'Если завтра всё пойдёт наперекосяк, насколько ты уверен(а), что {P} будет рядом?', min:0, max:10, left:'сомневаюсь', right:'на все 100'},
+  /* Деньги — Dew, Britt & Huston 2012 */
+  {id:'q9', scale:'money', type:'guess', text:'Вам внезапно свалились 100 000 ₽. Куда их?', opts:['Спонтанный отпуск ✈️','В копилку 🏦','Что-то для дома 🛋️','Каждому по 50 на хотелки 🎁'], short:['отпуск','копилку','что-то для дома','по 50 на хотелки']},
+  /* Быт и роли — восприятие вклада */
+  {id:'q10', scale:'roles', type:'slider', text:'Кто у вас главный по быту?', min:0, max:10, left:'я', right:'{P}'},
+  /* Юмор — Hall 2017 */
+  {id:'q12', scale:'humor', type:'guess', text:'Над чем ты смеёшься до слёз?', opts:['Мемы','Стендап','Мои же неудачи','Собственные шутки','Видео с котиками'], short:['мемы','стендап','свои неудачи','свои шутки','видео с котиками'], inst:['мемами','стендапом','своими неудачами','своими же шутками','видео с котиками']},
+  /* Планы — цитата в отчёт */
+  {id:'q13', scale:'plans', type:'open', text:'Одна вещь, которую ты хочешь сделать вместе с {P} в этом году', ph:'Например: съездить на море без телефонов'}
+];
+var FEEDBACK = [
+  {id:'f_acc', type:'slider', text:'Насколько разбор получился про вас?', min:1, max:5, left:'вообще не про нас', right:'прямо в точку'},
+  {id:'f_time', type:'choice', text:'Сколько примерно заняло?', opts:['До 5 минут','5–10 минут','10–15 минут','Больше 15']},
+  {id:'f_fun', type:'slider', text:'Насколько было интересно проходить?', min:1, max:5, left:'скучно', right:'очень'},
+  {id:'f_part', type:'choice', text:'Какая часть понравилась больше всего?', opts:['Отвечать вместе и спорить','Угадывать ответы партнёра','Раскрытие ответов в конце','Всё одинаково']},
+  {id:'f_best', type:'open', text:'Какой вопрос понравился больше всего и какой бесил?', ph:'Например: «угадай, что выберет партнёр» — топ, а про деньги — странно'},
+  {id:'f_pay', type:'choice', text:'Полный разбор вашей пары. Сколько готовы заплатить?', opts:['Ничего, только бесплатно','До 299 ₽','До 499 ₽','До 990 ₽','Больше']},
+  {id:'f_share', type:'choice', text:'Поделились бы результатом с друзьями?', opts:['Да, в сторис','Да, скинули бы в чат','Только между собой','Нет']}
+];
+
+var S = {step:'intro', a:'', b:'', since:'', who:'A', i:0, ans:{A:{},B:{}}, fb:{}, solar:{want:null, A:{}, B:{}}};
+var app = document.getElementById('app');
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function nm(w){return w==='A'?(S.a||'Партнёр 1'):(S.b||'Партнёр 2')}
+function other(w){return w==='A'?'B':'A'}
+function sub(t){return t.replace(/\{P\}/g,esc(nm(other(S.who)))).replace(/\{ME\}/g,esc(nm(S.who)))}
+function plain(t,w){return t.replace(/\{P\}/g,nm(other(w))).replace(/\{ME\}/g,nm(w))}
+
+var CATS='<svg class="hero-cats" viewBox="0 0 240 170" role="img" aria-label="Мишаня и Кнопка">'+
+'<defs><radialGradient id="mf" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="#b9c1cf"/><stop offset="1" stop-color="#7d889b"/></radialGradient>'+
+'<radialGradient id="kf" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="#ffb072"/><stop offset="1" stop-color="#e8692b"/></radialGradient></defs>'+
+'<ellipse cx="120" cy="160" rx="100" ry="8" fill="#000" opacity=".06"/>'+
+/* хвост Мишани */
+'<path d="M42 140 C10 135 6 95 30 88 C40 86 44 96 36 100 C24 106 28 128 50 130 Z" fill="url(#mf)"/>'+
+/* тело Мишани */
+'<path d="M40 158 C30 120 50 92 92 90 C134 92 150 124 140 158 Z" fill="url(#mf)"/>'+
+'<path d="M70 158 C68 132 78 118 92 116 C106 118 116 132 114 158 Z" fill="#e7eaf0"/>'+
+/* грива и голова */
+'<path d="M52 82 C46 56 62 34 92 32 C122 34 138 56 132 82 C138 98 120 112 92 112 C64 112 46 98 52 82 Z" fill="url(#mf)"/>'+
+'<path d="M60 92 C56 104 70 116 92 116 C114 116 128 104 124 92 C118 104 104 108 92 108 C80 108 66 104 60 92 Z" fill="#e7eaf0"/>'+
+/* уши с кисточками */
+'<path d="M58 54 L50 14 L82 38 Z" fill="url(#mf)"/><path d="M60 50 L55 24 L76 40 Z" fill="#f2c4c8"/><path d="M50 14 L46 2 M50 14 L52 3" stroke="#6e788a" stroke-width="2.4" stroke-linecap="round"/>'+
+'<path d="M126 54 L134 14 L102 38 Z" fill="url(#mf)"/><path d="M124 50 L129 24 L108 40 Z" fill="#f2c4c8"/><path d="M134 14 L138 2 M134 14 L132 3" stroke="#6e788a" stroke-width="2.4" stroke-linecap="round"/>'+
+/* полоски на лбу */
+'<path d="M86 40 l2 10 M92 38 l0 12 M98 40 l-2 10" stroke="#6e788a" stroke-width="2.2" stroke-linecap="round"/>'+
+/* сонные глаза */
+'<path d="M70 68 q8 6 16 0" stroke="#2b2f38" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M98 68 q8 6 16 0" stroke="#2b2f38" stroke-width="3" fill="none" stroke-linecap="round"/>'+
+'<path d="M88 80 l4 4 l4 -4 Z" fill="#d98a96"/><path d="M92 84 v4 M92 88 q-5 4 -9 1 M92 88 q5 4 9 1" stroke="#2b2f38" stroke-width="1.8" fill="none" stroke-linecap="round"/>'+
+'<path d="M62 84 h-16 M62 88 l-14 4 M122 84 h16 M122 88 l14 4" stroke="#eef0f4" stroke-width="1.4" stroke-linecap="round"/>'+
+'<ellipse cx="68" cy="80" rx="6" ry="3.5" fill="#f2b4bd" opacity=".55"/><ellipse cx="116" cy="80" rx="6" ry="3.5" fill="#f2b4bd" opacity=".55"/>'+
+/* лапы */
+'<ellipse cx="74" cy="157" rx="13" ry="7" fill="#e7eaf0"/><ellipse cx="110" cy="157" rx="13" ry="7" fill="#e7eaf0"/>'+
+/* Кнопка: хвост */
+'<path d="M206 150 C230 146 232 116 216 110" stroke="url(#kf)" stroke-width="9" fill="none" stroke-linecap="round"/>'+
+/* тело */
+'<path d="M158 160 C152 132 166 116 182 115 C198 116 212 132 206 160 Z" fill="url(#kf)"/>'+
+'<path d="M172 160 C172 144 176 136 182 135 C188 136 192 144 192 160 Z" fill="#ffe2cc"/>'+
+/* голова */
+'<ellipse cx="182" cy="100" rx="26" ry="23" fill="url(#kf)"/>'+
+'<path d="M162 90 L158 66 L176 80 Z" fill="url(#kf)"/><path d="M164 86 L162 72 L172 80 Z" fill="#f6c0c6"/>'+
+'<path d="M202 90 L206 66 L188 80 Z" fill="url(#kf)"/><path d="M200 86 L202 72 L192 80 Z" fill="#f6c0c6"/>'+
+'<path d="M176 80 l2 7 M182 78 v8 M188 80 l-2 7" stroke="#c8551e" stroke-width="2" stroke-linecap="round"/>'+
+/* большие зелёные глаза: один прищурен */
+'<ellipse cx="172" cy="100" rx="6.5" ry="7.5" fill="#2f9a62"/><ellipse cx="172" cy="101" rx="2.4" ry="5" fill="#1d2420"/><circle cx="174" cy="97" r="1.8" fill="#fff"/>'+
+'<path d="M187 101 q6 -4 12 0" stroke="#2b2f38" stroke-width="3" fill="none" stroke-linecap="round"/>'+
+'<path d="M179 108 l3 3 l3 -3 Z" fill="#e58a95"/><path d="M182 111 v2 M182 113 q-4 3 -7 0 M182 113 q4 3 7 0" stroke="#2b2f38" stroke-width="1.5" fill="none" stroke-linecap="round"/>'+
+'<path d="M164 108 h-12 M200 108 h12" stroke="#fff3e8" stroke-width="1.2" stroke-linecap="round"/>'+
+/* розовый ошейник и колокольчик */
+'<path d="M162 118 q20 9 40 0" stroke="#e8578a" stroke-width="5" fill="none" stroke-linecap="round"/>'+
+'<circle cx="182" cy="126" r="5" fill="#e3b341"/><path d="M178 125 h8" stroke="#b88a1e" stroke-width="1.2"/><circle cx="182" cy="128" r="1.2" fill="#8a6612"/>'+
+'<ellipse cx="172" cy="158" rx="8" ry="5" fill="#ffe2cc"/><ellipse cx="192" cy="158" rx="8" ry="5" fill="#ffe2cc"/>'+
+/* сердечко */
+'<path d="M140 40 c-4 -8 -16 -4 -12 5 c2 5 12 11 12 11 c0 0 10 -6 12 -11 c4 -9 -8 -13 -12 -5 Z" fill="#e8578a" opacity=".85"/>'+
+'</svg>';
+
+var TOTAL = JOINT.length + Q.length*2;
+function progress(){ if(S.step==='joint')return S.i; if(S.step==='q')return JOINT.length+(S.who==='B'?Q.length:0)+S.i; return 0 }
+function topbar(label,cls){return '<div class="top"><span class="who'+(cls?' '+cls:'')+'">'+label+'</span><div class="bar"><i style="width:'+(progress()/TOTAL*100)+'%"></i></div><span class="count">'+(progress()+1)+' / '+TOTAL+'</span></div>'}
+function navrow(canBack){return '<div class="row">'+(canBack?'<button class="btn ghost" id="back">Назад</button>':'')+'<button class="btn" id="next">Дальше</button></div>'}
+
+function render(){
+  var h='';
+  if(S.step==='intro'){
+    h='<div class="card"><div class="scene-wrap">'+CATART.hero()+'</div><div class="center" style="display:grid;gap:10px"><h1>Тест проходят <em>вдвоём</em> с одного телефона</h1><p class="muted">Сначала отвечаете вместе, потом каждый тайно, а в конце открываете ответы друг друга. Минут 8–10.</p></div>'+
+      '<div class="note">Ваши ответы никуда не отправляются: они остаются на этом телефоне, а разбор пары вы получите сразу в конце.</div>'+
+      '<div style="display:grid;gap:10px"><div class="field"><label for="na">Как зовут первого</label><input type="text" id="na" maxlength="20" autocomplete="off" placeholder="Например, Аня" value="'+esc(S.a)+'"></div>'+
+      '<div class="field b"><label for="nb">Как зовут второго</label><input type="text" id="nb" maxlength="20" autocomplete="off" placeholder="Например, Дима" value="'+esc(S.b)+'"></div>'+
+      '<div class="field" style="border-color:var(--line);background:#f7f6fb"><label for="since">Когда начали встречаться (можно примерно)</label><input type="month" id="since" value="'+esc(S.since)+'"></div></div>'+
+      '<label class="check"><input type="checkbox" id="c1"><span>Нам обоим есть 18 лет. Мы понимаем, что тест развлекательный и не заменяет консультацию специалиста</span></label>'+
+      '<button class="btn" id="go" disabled>Начать</button></div>';
+  } else if(S.step==='jointintro'){
+    h='<div class="card center">'+CATS+'<h2>Часть 1. Вместе</h2><p class="muted">Садитесь рядом. Каждый отвечает за себя: рыжие кнопки — '+esc(nm('A'))+', сиреневые — '+esc(nm('B'))+'. Спорить можно и нужно 😄</p><button class="btn" id="go">Поехали</button></div>';
+  } else if(S.step==='joint'){
+    var j=JOINT[S.i];
+    h=topbar('Вместе','both')+'<div class="card">'+jointhtml(j)+navrow(S.i>0)+'</div>';
+  } else if(S.step==='hand'){
+    h='<div class="card center">'+CATS+'<h2>'+(S.who==='A'?'Часть 2. Тайно<br>Отвечает '+esc(nm('A')):'Передай телефон: '+esc(nm('B')))+'</h2>'+
+      '<p class="muted">'+(S.who==='A'?esc(nm('B'))+', отвернись 🙈 Тут отвечаешь за себя и угадываешь, что ответит партнёр.':'Ответы '+esc(nm('A'))+' спрятаны. '+esc(nm('B'))+', теперь твоя очередь, и тоже без подглядываний.')+'</p>'+
+      '<button class="btn" id="go">'+(S.who==='A'?'Я '+esc(nm('A'))+', начинаю':'Я '+esc(nm('B'))+', начинаю')+'</button></div>';
+  } else if(S.step==='q'){
+    var q=Q[S.i];
+    h=topbar(esc(nm(S.who)))+'<div class="card">'+qhtml(q, S.ans[S.who][q.id])+navrow(S.i>0)+'</div>';
+  } else if(S.step==='revealintro'){
+    h='<div class="card center"><div class="scene-wrap">'+CATART.window()+'</div><h2>Часть 3. Открываем ответы</h2><p class="muted">Садитесь снова вместе. Сейчас узнаете, насколько хорошо вы знаете друг друга.</p><button class="btn" id="go">Открыть</button></div>';
+  } else if(S.step==='reveal'){
+    h='<div class="card reveal">'+revealhtml()+'<button class="btn" id="go">Дальше</button></div>';
+  } else if(S.step==='report2'){
+    h=(location.hash==='#demo'?'<div class="note" style="margin-bottom:12px">Это пример разбора для пары Ани и Димы. Ваш будет про вас.</div>':'')+'<div class="card rep">'+reporthtml()+'<button class="btn" id="go">'+(location.hash==='#demo'?'Пройти тест самим':'Назад')+'</button></div>';
+  } else if(S.step==='report'){
+    h='<div class="card rep">'+reporthtml()+'<button class="btn" id="go">Дальше</button></div>';
+  } else if(S.step==='solar'){
+    h='<div class="card">'+CATS+'<div class="center" style="display:grid;gap:8px"><h2>Хотите соляр пары на год? ✨</h2><p class="muted">Прогноз на год вперёд по датам, времени и месту рождения: для каждого и для вас вдвоём.</p></div>'+
+      '<div class="row"><button class="btn ghost" id="no">Нет, спасибо</button><button class="btn" id="yes">Хочу</button></div></div>';
+  } else if(S.step==='solarsoon'){
+    h='<div class="card center">'+CATS+'<h2>Скоро будет! 🌙</h2><p class="muted">Соляр пары сейчас в разработке. Спасибо, что сказали, что он вам интересен: так мы понимаем, что делать первым.</p><button class="btn" id="go">Дальше</button></div>';
+  } else if(S.step==='solarform'){
+    h='<div class="card"><h2>Данные для соляра</h2><p class="muted small">Дата обязательна. Время и город рождения — если знаете: с ними прогноз точнее.</p>'+
+      solarfields('A')+solarfields('B')+'<button class="btn" id="go" disabled>Готово</button></div>';
+  } else if(S.step==='fbintro'){
+    h='<div class="card center">'+CATS+'<h2>Помогите сделать тест лучше</h2><p class="muted">7 коротких вопросов про сам тест. Ваши ответы на тест мы не видим и не спрашиваем.</p><button class="btn" id="go">Ответить</button></div>';
+  } else if(S.step==='fb'){
+    var f=FEEDBACK[S.i];
+    h='<div class="top"><span class="who both">Про тест</span><div class="bar"><i style="width:'+(S.i/FEEDBACK.length*100)+'%"></i></div><span class="count">'+(S.i+1)+' / '+FEEDBACK.length+'</span></div>'+
+      '<div class="card">'+qhtml(f, S.fb[f.id])+navrow(S.i>0)+'</div>';
+  } else if(S.step==='done'){
+    var txt=payload();
+    h='<div class="card">'+CATS+'<div class="center" style="display:grid;gap:8px"><h2>Последний шаг 🧡</h2><p class="muted">Нажмите кнопку ниже, чтобы отправить оценку. Это 5 секунд, а для нас это самое ценное: по вашим отзывам мы доделываем тест. Уйдут только оценки, ответы на вопросы останутся у вас.</p></div>'+
+      '<a class="btn" style="text-align:center;text-decoration:none;display:block" href="https://t.me/jokovu?text='+encodeURIComponent(txt)+'" target="_blank" rel="noopener">Отправить оценку в Telegram</a>'+
+      '<p class="small muted center">Откроется чат с готовым текстом — останется нажать «Отправить».</p>'+
+      '<button class="btn ghost" id="copy">Скопировать оценку</button><p class="small muted center" id="copied" aria-live="polite"></p>'+
+      '<details><summary class="small muted">Что отправится</summary><pre class="out" id="out">'+esc(txt)+'</pre></details>'+
+      '<button class="btn ghost" id="again">Ещё раз посмотреть наш разбор</button></div>';
+  }
+  app.dataset.who=(S.step==='q'||S.step==='hand')?S.who:'A';
+  app.innerHTML=h; bind(); window.scrollTo(0,0);
+}
+
+function solarfields(w){
+  var d=S.solar[w];
+  return '<div class="field'+(w==='B'?' b':'')+'" style="gap:8px"><label>'+esc(nm(w))+'</label>'+
+    '<input type="date" id="bd'+w+'" value="'+esc(d.date||'')+'" aria-label="Дата рождения '+esc(nm(w))+'">'+
+    '<div class="two"><input type="time" id="bt'+w+'" value="'+esc(d.time||'')+'" aria-label="Время рождения '+esc(nm(w))+'" placeholder="Время"><input type="text" id="bc'+w+'" maxlength="40" value="'+esc(d.city||'')+'" placeholder="Город рождения" aria-label="Город рождения '+esc(nm(w))+'"></div></div>';
+}
+
+function jointhtml(j){
+  var A=S.ans.A[j.id]||{}, B=S.ans.B[j.id]||{};
+  var h='<h2>'+esc(j.text)+'</h2>'+(j.hint?'<p class="muted small">'+esc(j.hint)+'</p>':'')+'<div class="joint">';
+  j.items.forEach(function(it,n){
+    var labels=j.type==='ns'?['Норм','Стрём']:[it[0],it[1]], vals=j.type==='ns'?[1,0]:[0,1];
+    h+='<div class="jitem" data-n="'+n+'">'+(j.type==='ns'?'<div class="jq">'+esc(it)+'</div>':'');
+    ['A','B'].forEach(function(w){var cur=(w==='A'?A:B)[n];
+      h+='<div class="jrow '+w.toLowerCase()+'" data-w="'+w+'"><span class="jname '+w.toLowerCase()+'">'+esc(nm(w))+'</span>'+
+        labels.map(function(l,k){return '<button class="opt" data-k="'+vals[k]+'" aria-pressed="'+(cur===vals[k])+'">'+esc(l)+'</button>'}).join('')+'</div>';
+    });
+    h+='</div>';
+  });
+  return h+'</div>';
+}
+
+function qhtml(q,v){
+  var h='<h2>'+sub(q.text)+'</h2>'+(q.hint?'<p class="muted small">'+sub(q.hint)+'</p>':'');
+  if(q.type==='choice'||q.type==='multi'){
+    h+='<div class="opts">'+q.opts.map(function(o,k){var on=q.type==='multi'?(v||[]).indexOf(k)>=0:v===k;return '<button class="opt" data-k="'+k+'" aria-pressed="'+on+'">'+sub(o)+'</button>'}).join('')+'</div>';
+  } else if(q.type==='guess'){
+    v=v||{};
+    h+='<p class="sub">Ты сам(а)</p><div class="opts" data-part="me">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.me===k)+'">'+sub(o)+'</button>'}).join('')+'</div>'+
+       '<p class="sub">А что выберет '+esc(nm(other(S.who)))+'?</p><div class="opts" data-part="guess">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.guess===k)+'">'+sub(o)+'</button>'}).join('')+'</div>';
+  } else if(q.type==='slider'){
+    var val=(v==null)?Math.round((q.min+q.max)/2):v;
+    h+='<div class="range"><div class="val" id="sv">'+val+'</div><input type="range" id="sl" min="'+q.min+'" max="'+q.max+'" step="1" value="'+val+'" aria-label="'+esc(q.text)+'"><div class="ends"><span>'+sub(q.left)+'</span><span>'+sub(q.right)+'</span></div></div>';
+  } else if(q.type==='open'){
+    h+='<textarea id="ta" maxlength="400" placeholder="'+esc(sub(q.ph||'Напиши как есть'))+'">'+esc(v||'')+'</textarea>';
+  }
+  return h;
+}
+
+function done(q,v){
+  if(q.type==='open'||q.type==='slider')return true;
+  if(v==null)return false;
+  if(q.type==='multi')return v.length>0;
+  if(q.type==='guess')return v.me!=null&&v.guess!=null;
+  return true;
+}
+function jointdone(j){var A=S.ans.A[j.id]||{},B=S.ans.B[j.id]||{};return j.items.every(function(_,n){return A[n]!=null&&B[n]!=null})}
+
+/* ===== РАСКРЫТИЕ ===== */
+function reveal(){
+  var G=Q.filter(function(q){return q.type==='guess'}), A=S.ans.A, B=S.ans.B, res={aHits:0,bHits:0,n:G.length,facts:[]};
+  G.forEach(function(q){
+    var a=A[q.id]||{}, b=B[q.id]||{};
+    var aHit=a.guess===b.me, bHit=b.guess===a.me;
+    if(aHit)res.aHits++; if(bHit)res.bHits++;
+    if(a.me===b.me&&aHit&&bHit) res.facts.push({w:1,t:'Вы оба выбрали '+q.short[a.me]+' и оба это угадали 🤝'});
+    else{
+      if(!aHit) res.facts.push({w:2,t:nm('A')+' думал(а), что '+nm('B')+' выберет '+q.short[a.guess]+', а там '+q.short[b.me]+' 😅'});
+      if(!bHit) res.facts.push({w:2,t:nm('B')+' думал(а), что '+nm('A')+' выберет '+q.short[b.guess]+', а там '+q.short[a.me]+' 😅'});
+    }
+  });
+  function who(q){var a=A[q.id],b=B[q.id]; if(a==null||b==null)return null;
+    var aSaysB=a>=6, aSaysA=a<=4, bSaysA=b>=6, bSaysB=b<=4;
+    if(aSaysB&&bSaysB)return 'Вы оба считаете, что тут главный(ая) — '+nm('B');
+    if(aSaysA&&bSaysA)return 'Вы оба считаете, что тут главный(ая) — '+nm('A');
+    if(aSaysA&&bSaysB)return 'Каждый уверен, что это он(а) 😄 Пора выяснить правду';
+    if(aSaysB&&bSaysA)return 'Каждый скромно считает, что это партнёр 🥰';
+    return 'Похоже, у вас поровну';
+  }
+  var qm=Q.filter(function(q){return q.id==='q4'})[0], qr=Q.filter(function(q){return q.id==='q10'})[0];
+  res.mir=who(qm); res.byt=who(qr);
+  var ns=JOINT[0], na=A[ns.id]||{}, nb=B[ns.id]||{}, same=0, diff=[];
+  ns.items.forEach(function(t,n){if(na[n]===nb[n])same++;else diff.push(t)});
+  res.ns={same:same,n:ns.items.length,diff:diff};
+  return res;
+}
+function revealhtml(){
+  var r=reveal();
+  var facts=r.facts.sort(function(x,y){return y.w-x.w}).slice(0,4);
+  var h='<h2>Насколько вы знаете друг друга</h2><div class="score"><div class="a"><b>'+r.aHits+' из '+r.n+'</b><span class="small">'+esc(nm('A'))+' угадал(а) '+esc(nm('B'))+'</span></div><div class="b"><b>'+r.bHits+' из '+r.n+'</b><span class="small">'+esc(nm('B'))+' угадал(а) '+esc(nm('A'))+'</span></div></div>';
+  facts.forEach(function(f){h+='<div class="fact">'+esc(f.t)+'</div>'});
+  if(r.mir)h+='<div class="fact"><b>Кто первым мирится?</b> '+esc(r.mir)+'</div>';
+  if(r.byt)h+='<div class="fact"><b>Кто главный по быту?</b> '+esc(r.byt)+'</div>';
+  h+='<div class="fact"><b>Норм или стрём:</b> совпали в '+r.ns.same+' из '+r.ns.n+(r.ns.diff.length?'. Спорили про: '+esc(r.ns.diff.slice(0,2).join('; ').toLowerCase()):'')+'</div>';
+  return h;
+}
+
+function bind(){
+  var go=document.getElementById('go');
+  if(S.step==='intro'){
+    var na=document.getElementById('na'),nb=document.getElementById('nb'),c1=document.getElementById('c1'),si=document.getElementById('since');
+    var upd=function(){S.a=na.value.trim();S.b=nb.value.trim();S.since=si.value;go.disabled=!(S.a&&S.b&&c1.checked)};
+    na.oninput=nb.oninput=si.oninput=si.onchange=c1.onchange=upd; upd();
+    go.onclick=function(){S.step='jointintro';render()};
+    return;
+  }
+  if(S.step==='jointintro'){go.onclick=function(){S.step='joint';S.i=0;render()};return}
+  if(S.step==='hand'){go.onclick=function(){S.step='q';S.i=0;render()};return}
+  if(S.step==='revealintro'){go.onclick=function(){S.step='reveal';render()};return}
+  if(S.step==='reveal'){go.onclick=function(){S.step='report';render()};return}
+  if(S.step==='report2'){go.onclick=function(){if(location.hash==='#demo'){location.hash='';S={step:'intro',a:'',b:'',since:'',who:'A',i:0,ans:{A:{},B:{}},fb:{},solar:{want:null,A:{},B:{}}};}else{S.step='done'}render()};return}
+  if(S.step==='report'){go.onclick=function(){S.step='solar';render()};return}
+  if(S.step==='solar'){
+    document.getElementById('yes').onclick=function(){S.solar.want=true;S.step='solarsoon';render()};
+    document.getElementById('no').onclick=function(){S.solar.want=false;S.step='fbintro';render()};
+    return;
+  }
+  if(S.step==='solarform'){
+    var ids=['A','B'];
+    var upd2=function(){ids.forEach(function(w){S.solar[w]={date:document.getElementById('bd'+w).value,time:document.getElementById('bt'+w).value,city:document.getElementById('bc'+w).value.trim()}});go.disabled=!(S.solar.A.date&&S.solar.B.date)};
+    ids.forEach(function(w){['bd','bt','bc'].forEach(function(p){var el=document.getElementById(p+w);el.oninput=el.onchange=upd2})}); upd2();
+    go.onclick=function(){S.step='fbintro';render()};
+    return;
+  }
+  if(S.step==='solarsoon'){go.onclick=function(){S.step='fbintro';render()};return}
+  if(S.step==='fbintro'){go.onclick=function(){S.step='fb';S.i=0;render()};return}
+  if(S.step==='done'){
+    var cp=document.getElementById('copy'),msg=document.getElementById('copied');
+    var sel=function(){var d=document.querySelector('details');d.open=true;var r=document.createRange();r.selectNodeContents(document.getElementById('out'));var s=getSelection();s.removeAllRanges();s.addRange(r);msg.textContent='Текст выделен — скопируй его вручную.'};
+    document.getElementById('again').onclick=function(){S.step='report2';render()};
+    cp.onclick=function(){try{navigator.clipboard.writeText(payload()).then(function(){msg.textContent='Скопировано. Отправь в Telegram @jokovu.'},sel)}catch(e){sel()}};
+    return;
+  }
+  var next=document.getElementById('next'), back=document.getElementById('back');
+  if(S.step==='joint'){
+    var j=JOINT[S.i];
+    [].forEach.call(app.querySelectorAll('.jitem'),function(it){var n=+it.dataset.n;[].forEach.call(it.querySelectorAll('.jrow'),function(r){var w=r.dataset.w;[].forEach.call(r.querySelectorAll('.opt'),function(b){b.onclick=function(){var v=S.ans[w][j.id]||{};v[n]=+b.dataset.k;S.ans[w][j.id]=v;[].forEach.call(r.querySelectorAll('.opt'),function(x){x.setAttribute('aria-pressed',+x.dataset.k===v[n])});next.disabled=!jointdone(j)}})})});
+    next.disabled=!jointdone(j);
+    next.onclick=function(){if(S.i<JOINT.length-1){S.i++;render()}else{S.step='hand';S.who='A';render()}};
+    if(back)back.onclick=function(){S.i--;render()};
+    return;
+  }
+  var q=S.step==='q'?Q[S.i]:FEEDBACK[S.i], st=S.step==='q'?S.ans[S.who]:S.fb;
+  function check(){next.disabled=!done(q,st[q.id])}
+  if(q.type==='choice'||q.type==='multi'){
+    [].forEach.call(app.querySelectorAll('.opts .opt'),function(b){b.onclick=function(){var k=+b.dataset.k;st[q.id]=k;[].forEach.call(app.querySelectorAll('.opts .opt'),function(x){x.setAttribute('aria-pressed',+x.dataset.k===k)});check()}});
+  } else if(q.type==='guess'){
+    [].forEach.call(app.querySelectorAll('.opts'),function(g){var part=g.dataset.part;[].forEach.call(g.querySelectorAll('.opt'),function(b){b.onclick=function(){var v=st[q.id]||{};v[part]=+b.dataset.k;st[q.id]=v;[].forEach.call(g.querySelectorAll('.opt'),function(x){x.setAttribute('aria-pressed',+x.dataset.k===v[part])});check()}})});
+  } else if(q.type==='slider'){
+    var sl=document.getElementById('sl'),sv=document.getElementById('sv'); if(st[q.id]==null)st[q.id]=+sl.value;
+    sl.oninput=function(){st[q.id]=+sl.value;sv.textContent=sl.value};
+  } else if(q.type==='open'){
+    var ta=document.getElementById('ta');ta.oninput=function(){st[q.id]=ta.value};
+  }
+  check();
+  next.onclick=function(){
+    var list=S.step==='q'?Q:FEEDBACK;
+    if(S.i<list.length-1){S.i++;render();return}
+    if(S.step==='q'&&S.who==='A'){S.who='B';S.step='hand';render();return}
+    if(S.step==='q'){S.step='revealintro';render();return}
+    S.step='done';render();
+  };
+  if(back)back.onclick=function(){S.i--;render()};
+}
+
+/* ===== ВЫГРУЗКА ===== */
+function fmt(q,v,w){
+  var o=function(k){return q.opts[k]};
+  if(q.type==='choice')return v==null?'—':o(v);
+  if(q.type==='guess')return v?('сам(а): '+o(v.me)+' | угадывает партнёра: '+o(v.guess)):'—';
+  if(q.type==='pairs')return q.items.map(function(p,n){return (v&&v[n]!=null)?p[v[n]]:'—'}).join('; ');
+  if(q.type==='ns')return q.items.map(function(t,n){return t+' — '+((v&&v[n]!=null)?(v[n]?'норм':'стрём'):'—')}).join('; ');
+  if(q.type==='slider')return v==null?'—':(v+' из '+q.max+' ('+q.min+' = '+plain(q.left,w)+', '+q.max+' = '+plain(q.right,w)+')');
+  if(q.type==='open')return (v||'').trim()||'—';
+  return String(v);
+}
+function code(q,v){
+  if(v==null)return '-';
+  if(q.type==='choice')return String(v+1);
+  if(q.type==='guess')return (v.me+1)+'/'+(v.guess+1);
+  if(q.type==='pairs'||q.type==='ns')return q.items.map(function(_,n){return v[n]==null?'-':v[n]}).join('');
+  if(q.type==='slider')return String(v);
+  if(q.type==='open')return '«'+String(v).trim().replace(/\s+/g,' ')+'»';
+  return String(v);
+}
+function solarline(){
+  if(S.solar.want==null)return 'Соляр: не спрашивали';
+  if(!S.solar.want)return 'Соляр: не хотят';
+  return 'Соляр: хотят | '+['A','B'].map(function(w){var d=S.solar[w];return nm(w)+' '+(d.date||'?')+' '+(d.time||'время ?')+' '+(d.city||'город ?')}).join(' | ');
+}
+function compact(){
+  var all=JOINT.concat(Q);
+  var L=['Тест пары v2: '+nm('A')+' + '+nm('B')+(S.since?' | вместе с '+S.since:'')];
+  ['A','B'].forEach(function(w){L.push(w+' '+nm(w)+': '+all.map(function(q){return q.id.slice(1)+'='+code(q,S.ans[w][q.id])}).join(' '))});
+  L.push(solarline());
+  L.push('Отзыв: '+FEEDBACK.map(function(f,n){return (n+1)+'='+code(f,S.fb[f.id])}).join(' '));
+  return L.join('\n');
+}
+function payload(){
+  var r=reveal();
+  var L=['Оценка теста пары (фокус-группа v3)'];
+  FEEDBACK.forEach(function(f){L.push('— '+f.text+' '+fmt(f,S.fb[f.id]))});
+  L.push('— Соляр: '+(S.solar.want==null?'не дошли':(S.solar.want?'хотят':'не хотят')));
+  L.push('— Угадали друг друга: '+r.aHits+' и '+r.bHits+' из '+r.n);
+  return L.join('\n');
+}
+/* ===== РАЗБОР ПАРЫ (по правилам; в продукте заменим на ИИ и настоящие иллюстрации) ===== */
+function daysTogether(){ if(!S.since)return null; var p=S.since.split('-'); var d=new Date(+p[0],+p[1]-1,1); var n=Math.floor((Date.now()-d.getTime())/864e5); return n>0?n:null }
+/* Котики под настроение раздела: happy — обнимаются, ok — сидят рядом, grumpy — надулись под тучкой */
+function catMood(m){
+  var M='#8f9aac', K='#f07a3a', ink='#2b2f38';
+  var happy=m==='happy', grumpy=m==='grumpy';
+  var mx=grumpy?30:38, kx=grumpy?92:80;
+  var h='<svg viewBox="0 0 120 80" aria-hidden="true">';
+  if(happy)h+='<path d="M60 14 c-2 -5 -10 -3 -8 3 c1 3 8 7 8 7 c0 0 7 -4 8 -7 c2 -6 -6 -8 -8 -3 Z" fill="#e8578a"/>';
+  if(grumpy)h+='<path d="M48 16 q0 -8 9 -8 q4 -6 11 -2 q8 -1 8 7 q5 1 4 6 h-32 q-4 -2 0 -3 Z" fill="#c9cfdb"/><path d="M58 22 l-3 6 h4 l-3 6" stroke="#e3b341" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
+  /* Мишаня */
+  h+='<ellipse cx="'+mx+'" cy="64" rx="24" ry="15" fill="'+M+'"/><circle cx="'+mx+'" cy="42" r="18" fill="'+M+'"/>';
+  h+=grumpy?'<path d="M'+(mx-14)+' 34 l-10 -2 l8 -8 Z M'+(mx+14)+' 34 l10 -2 l-8 -8 Z" fill="'+M+'"/>':'<path d="M'+(mx-14)+' 32 l-4 -18 l14 10 Z M'+(mx+14)+' 32 l4 -18 l-14 10 Z" fill="'+M+'"/>';
+  h+=happy?'<path d="M'+(mx-9)+' 42 q3 -4 6 0 M'+(mx+3)+' 42 q3 -4 6 0" stroke="'+ink+'" stroke-width="2" fill="none" stroke-linecap="round"/>':(grumpy?'<path d="M'+(mx-9)+' 41 h6 M'+(mx+3)+' 41 h6" stroke="'+ink+'" stroke-width="2" stroke-linecap="round"/>':'<circle cx="'+(mx-6)+'" cy="41" r="1.8" fill="'+ink+'"/><circle cx="'+(mx+6)+'" cy="41" r="1.8" fill="'+ink+'"/>');
+  h+=happy?'<path d="M'+(mx-4)+' 49 q4 4 8 0" stroke="'+ink+'" stroke-width="1.8" fill="none" stroke-linecap="round"/>':(grumpy?'<path d="M'+(mx-4)+' 51 q4 -3 8 0" stroke="'+ink+'" stroke-width="1.8" fill="none" stroke-linecap="round"/>':'<path d="M'+(mx-3)+' 50 h6" stroke="'+ink+'" stroke-width="1.8" stroke-linecap="round"/>');
+  /* Кнопка */
+  h+='<ellipse cx="'+kx+'" cy="68" rx="14" ry="10" fill="'+K+'"/><circle cx="'+kx+'" cy="52" r="12" fill="'+K+'"/><path d="M'+(kx-9)+' 46 l-2 -12 l9 7 Z M'+(kx+9)+' 46 l2 -12 l-9 7 Z" fill="'+K+'"/>';
+  h+=happy?'<path d="M'+(kx-6)+' 52 q2 -3 4 0 M'+(kx+2)+' 52 q2 -3 4 0" stroke="'+ink+'" stroke-width="1.8" fill="none" stroke-linecap="round"/>':(grumpy?'<path d="M'+(kx-6)+' 51 l4 1 M'+(kx+6)+' 51 l-4 1" stroke="'+ink+'" stroke-width="1.8" stroke-linecap="round"/>':'<circle cx="'+(kx-4)+'" cy="51" r="2" fill="#2f9a62"/><circle cx="'+(kx+4)+'" cy="51" r="2" fill="#2f9a62"/>');
+  h+=happy?'<path d="M'+(kx-3)+' 57 q3 3 6 0" stroke="'+ink+'" stroke-width="1.5" fill="none" stroke-linecap="round"/>':(grumpy?'<path d="M'+(kx-3)+' 58 q3 -2 6 0" stroke="'+ink+'" stroke-width="1.5" fill="none" stroke-linecap="round"/>':'');
+  h+='<path d="M'+(kx-10)+' 61 q10 5 20 0" stroke="#e8578a" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="'+kx+'" cy="65" r="2.2" fill="#e3b341"/>';
+  if(happy)h+='<path d="M'+(mx+18)+' 60 q14 -6 '+(kx-mx-30)+' 2" stroke="'+M+'" stroke-width="7" fill="none" stroke-linecap="round"/>';
+  return h+'</svg>';
+}
+function lc1(t){return t.charAt(0).toLowerCase()+t.slice(1)}
+var CHIP={happy:'Совпали 🎉',ok:'По-разному, но ок',grumpy:'Есть о чём поговорить'};
+function reporthtml(){
+  var A=S.ans.A, B=S.ans.B, r=reveal(), na=nm('A'), nb=nm('B');
+  var hits=r.aHits+r.bHits, tot=r.n*2;
+  var nsJ=JOINT[0], prJ=JOINT[1], nsA=A[nsJ.id]||{}, nsB=B[nsJ.id]||{}, prA=A[prJ.id]||{}, prB=B[prJ.id]||{};
+  var simNs=nsJ.items.filter(function(_,n){return nsA[n]===nsB[n]}).length, simPr=prJ.items.filter(function(_,n){return prA[n]===prB[n]}).length;
+  var sim=simNs+simPr, simTot=nsJ.items.length+prJ.items.length;
+  var cA=A.q8==null?5:A.q8, cB=B.q8==null?5:B.q8, apA=A.q6==null?5:A.q6, apB=B.q6==null?5:B.q6;
+  function q(id){return Q.filter(function(x){return x.id===id})[0]}
+  function sh(id,k){return k==null?'?':q(id).short[k]}
+  var arch;
+  if(hits>=tot*0.7) arch={t:'Читаете мысли',d:'Угадали друг друга в '+hits+' из '+tot+'. Обычно пары угадывают около половины.'};
+  else if(cA>=8&&cB>=8&&apA>=7&&apB>=7) arch={t:'Крепкий тыл',d:'Вы уверены друг в друге и чувствуете, что вас ценят. Это главное, по большим исследованиям пар.'};
+  else if(sim>=simTot*0.75) arch={t:'Два сапога пара',d:'Совпали в '+sim+' из '+simTot+' ответов «вместе». Похожие привычки экономят кучу нервов.'};
+  else if(sim<=simTot*0.4) arch={t:'Огонь и лёд',d:'Совпали только в '+sim+' из '+simTot+'. Скучно вам точно не бывает.'};
+  else arch={t:'Уютная парочка',d:'Где-то совпадаете, где-то спорите, но без драмы. Самый жизнеспособный вариант.'};
+  var days=daysTogether();
+  var h='<div class="arch"><div class="scene-wrap">'+CATART.hero()+'</div><div class="lbl">Ваша пара</div><h2>'+esc(arch.t)+'</h2>'+(days?'<div class="days">Вместе '+days.toLocaleString('ru-RU')+' дней</div>':'')+'<p>'+esc(arch.d)+'</p></div>';
+  function sec(title,mood,big,line,tip,extra,sc){
+    var scene=sc||(mood==='happy'?'cuddle':(mood==='ok'?'window':'backs'));
+    return '<div class="sec"><div class="secimg">'+CATART[scene]()+'</div><div class="sechead"><h3>'+title+'</h3><span class="chip '+mood+'">'+CHIP[mood]+'</span></div>'+
+      (big?'<div class="big">'+esc(big)+'</div>':'')+'<p>'+esc(line)+'</p>'+(extra||'')+(tip?'<details><summary>💡 Совет</summary><div class="tip">'+esc(tip)+'</div></details>':'')+'</div>';
+  }
+  /* 1. Понимание */
+  var m1=hits>=tot*0.7?'happy':(hits>=tot*0.4?'ok':'grumpy');
+  h+=sec('Знаете друг друга',m1, na+' — '+r.aHits+' из '+r.n+' · '+nb+' — '+r.bHits+' из '+r.n,
+    r.aHits===r.bHits?'Угадываете друг друга одинаково.':((r.aHits>r.bHits?na:nb)+' читает партнёра чуть лучше.'),
+    'Задайте друг другу 3 вопроса «а что бы ты выбрал(а)?» про еду, отпуск и выходные. Знание мелочей партнёра Готтман называет «картой любви».');
+  /* 2. Ссоры */
+  var c3a=(A.q3||{}).me, c3b=(B.q3||{}).me, pw=(c3a===0&&c3b===1)||(c3a===1&&c3b===0);
+  var m2=c3a===c3b?'happy':(pw?'grumpy':'ok');
+  h+=sec('Ссоры и примирение',m2, null,
+    c3a===c3b?'После ссоры вам обоим нужно одно: '+sh('q3',c3a)+'.':(pw?(c3a===0?na:nb)+' хочет обсудить сразу, '+(c3a===0?nb:na)+' — сначала остыть.':na+': '+sh('q3',c3a)+'. '+nb+': '+sh('q3',c3b)+'.'),
+    'Договоритесь о слове «пауза»: 20 минут остываете и обязательно возвращаетесь к разговору.',
+    r.mir?'<p class="small muted">Кто первым мирится: '+esc(lc1(r.mir))+'</p>':'', m2==='happy'?'makeup':null);
+  /* 3. Поддержка */
+  var m3=(apA>=7&&apB>=7)?'happy':(Math.min(apA,apB)<=4?'grumpy':'ok');
+  h+=sec('Поддержка',m3, 'Замечают старания: '+na+' '+apA+'/10 · '+nb+' '+apB+'/10',
+    'На хорошие новости '+na+' ждёт от партнёра '+sh('q5',(A.q5||{}).me)+', а '+nb+' — '+sh('q5',(B.q5||{}).me)+'.',
+    'Раз в день одно конкретное «спасибо»: не «за всё», а «что забрал(а) посылку».');
+  /* 4. Близость */
+  var dist=[0,1].filter(function(n){return nsA[n]!==nsB[n]});
+  var m4=(cA>=8&&cB>=8)?'happy':((Math.abs(cA-cB)>=3||Math.min(cA,cB)<=4)?'grumpy':'ok');
+  h+=sec('Надёжность',m4, 'Уверены друг в друге: '+na+' '+cA+'/10 · '+nb+' '+cB+'/10',
+    dist.length?'Разошлись во мнениях: «'+dist.map(function(n){return nsJ.items[n].toLowerCase()}).join('», «')+'».':'В вопросах личного пространства вы совпали.',
+    dist.length?'Обсудите, что для вас норм, и договоритесь. Тут нет правильного ответа, есть ваш.':null);
+  /* 5. Деньги */
+  var m9a=(A.q9||{}).me, m9b=(B.q9||{}).me;
+  h+=sec('Деньги',m9a===m9b?'happy':'ok', null,
+    m9a===m9b?'С внезапными 100 000 ₽ вы оба выбрали одно: '+sh('q9',m9a)+'.':na+' выбирает '+sh('q9',m9a)+', '+nb+' — '+sh('q9',m9b)+'. Разные суперсилы.',
+    'Заведите общую «копилку на мечту» и решите вдвоём, на что она.', null, m9a===m9b?'suitcase':null);
+  /* 6. Быт */
+  var bd=[2,3,4].filter(function(n){return nsA[n]!==nsB[n]});
+  h+=sec('Быт',bd.length===0?'happy':(bd.length>=2?'grumpy':'ok'), null,
+    bd.length?'Спорные пункты: «'+bd.map(function(n){return nsJ.items[n].toLowerCase()}).join('», «')+'».':'По носкам, посуде и покупкам вы совпали. Редкая удача!',
+    'Почти в каждой паре оба думают, что делают по дому больше: свои дела мы замечаем лучше.',
+    r.byt?'<p class="small muted">Главный по быту: '+esc(lc1(r.byt))+'</p>':'');
+  /* 7. Планы */
+  var quotes=((A.q13||'').trim()?'<div class="quote">'+esc(na)+': «'+esc(A.q13.trim())+'»</div>':'')+((B.q13||'').trim()?'<div class="quote b">'+esc(nb)+': «'+esc(B.q13.trim())+'»</div>':'');
+  h+=sec('Планы и досуг',simPr>=4?'happy':(simPr<=1?'grumpy':'ok'), 'Совпали в '+simPr+' из '+prJ.items.length, 'Ваши желания на этот год:',
+    'Пары, которые пробуют вместе новое, дольше сохраняют «искру». Выберите одно желание и назначьте дату.', quotes);
+  /* 8. Юмор */
+  var hA=(A.q12||{}).me, hB=(B.q12||{}).me, inst=q('q12').inst;
+  h+=sec('Юмор',hA===hB?'happy':'ok', null,
+    hA===hB?'Смеётесь над одним и тем же: над '+inst[hA]+'.':na+' смеётся над '+inst[hA]+', '+nb+' — над '+inst[hB]+'.', null);
+  h+='<p class="small muted center">Разбор развлекательный и собран по вашим ответам. Это не психологическая диагностика.</p>';
+  return h;
+}
+/* Демо-разбор по ссылке …#demo: пример пары, сразу экран разбора */
+function demo(){
+  S.a='Аня'; S.b='Дима'; S.since='2021-05';
+  S.ans.A={q7:{0:1,1:0,2:0,3:0,4:0,5:1}, q11:{0:1,1:0,2:1,3:1,4:1}, q1:{me:1,guess:2}, q2:{me:3,guess:1}, q3:{me:0,guess:1}, q4:3, q5:{me:0,guess:1}, q6:8, q8:9, q9:{me:0,guess:0}, q10:2, q12:{me:4,guess:3}, q13:'Съездить на Алтай и не брать ноутбуки'};
+  S.ans.B={q7:{0:1,1:1,2:1,3:0,4:0,5:1}, q11:{0:0,1:0,2:1,3:0,4:1}, q1:{me:2,guess:1}, q2:{me:1,guess:1}, q3:{me:1,guess:0}, q4:4, q5:{me:1,guess:0}, q6:6, q8:8, q9:{me:0,guess:3}, q10:3, q12:{me:3,guess:4}, q13:'Научиться вместе кататься на сноуборде'};
+  S.step='report2'; render();
+}
+
+if(location.hash==='#demo'){demo()}else{render()}
+</script>
+
+</body>
+</html>
