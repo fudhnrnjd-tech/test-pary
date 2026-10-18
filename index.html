@@ -124,6 +124,11 @@ pre.out{white-space:pre-wrap;word-break:break-word;font-size:.8rem;background:#f
 .tip b{color:var(--b)}
 .quote{font-size:.95rem;padding:10px 12px;border-left:3px solid var(--a);background:#fff;border-radius:0 12px 12px 0}
 .quote.b{border-left-color:var(--b)}
+.sci{display:grid;gap:5px;padding:11px 13px;border-radius:16px;background:#f5f6ff;border:1px solid #dfe3ff}
+.sci .t{font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--b)}
+.sci p{font-size:.88rem}
+.sci .src{font-size:.76rem;color:var(--muted)}
+.sec p b{color:var(--a)}
 .battle{display:grid;gap:8px;padding:16px;border-radius:22px;background:#fff7f1;border:1.5px solid var(--a-line)}
 .battle h3{font-family:var(--font-display);font-size:1.05rem;margin:0 0 4px;font-weight:500}
 .brow{display:grid;grid-template-columns:30px 1fr minmax(0,auto);gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
@@ -600,7 +605,7 @@ function compact(){
 }
 function payload(){
   var r=reveal();
-  var L=['Оценка теста пары (фокус-группа v4)'];
+  var L=['Оценка теста пары (фокус-группа v5)'];
   FEEDBACK.forEach(function(f){L.push('— '+f.text+' '+fmt(f,S.fb[f.id]))});
   L.push('— Соляр: '+(S.solar.want==null?'не дошли':(S.solar.want?'хотят':'не хотят')));
   L.push('— Угадали друг друга: '+r.aHits+' и '+r.bHits+' из '+r.n);
@@ -678,53 +683,64 @@ function reporthtml(){
   var days=daysTogether();
   var h='<div class="arch"><div class="scene-wrap">'+CATART.hero()+'</div><div class="lbl">Ваша пара</div><h2>'+esc(arch.t)+'</h2>'+(days?'<div class="days">Вместе '+days.toLocaleString('ru-RU')+' дней</div>':'')+'<p>'+esc(arch.d)+'</p></div>';
   h+=battlehtml(A,B,r,nsJ);
-  function sec(title,mood,big,line,tip,extra,sc){
+  function sec(title,mood,big,line,tip,extra,sc,sci){
     var scene=sc||(mood==='happy'?'cuddle':(mood==='ok'?'window':'backs'));
     return '<div class="sec"><div class="secimg">'+CATART[scene]()+'</div><div class="sechead"><h3>'+title+'</h3><span class="chip '+mood+'">'+CHIP[mood]+'</span></div>'+
-      (big?'<div class="big">'+esc(big)+'</div>':'')+'<p>'+esc(line)+'</p>'+(extra||'')+(tip?'<details><summary>💡 Совет</summary><div class="tip">'+esc(tip)+'</div></details>':'')+'</div>';
+      (big?'<div class="big">'+esc(big)+'</div>':'')+'<p>'+line+'</p>'+(extra||'')+
+      (sci?'<div class="sci"><span class="t">🔬 Почему это важно</span><p>'+esc(sci[0])+'</p><span class="src">'+esc(sci[1])+'</span></div>':'')+
+      (tip?'<details><summary>💡 Совет</summary><div class="tip">'+esc(tip)+'</div></details>':'')+'</div>';
   }
+  var proj=0; Q.forEach(function(x){if(x.type!=='guess')return; var a=A[x.id]||{}, b=B[x.id]||{}; if(a.guess===a.me&&b.me!==a.me)proj++; if(b.guess===b.me&&a.me!==b.me)proj++;});
   /* 1. Понимание */
   var m1=hits>=tot*0.7?'happy':(hits>=tot*0.4?'ok':'grumpy');
   h+=sec('Знаете друг друга',m1, na+' — '+r.aHits+' из '+r.n+' · '+nb+' — '+r.bHits+' из '+r.n,
-    r.aHits===r.bHits?'Угадываете друг друга одинаково.':((r.aHits>r.bHits?na:nb)+' читает партнёра чуть лучше.'),
-    'Задайте друг другу 3 вопроса «а что бы ты выбрал(а)?» про еду, отпуск и выходные. Знание мелочей партнёра Готтман называет «картой любви».');
+    esc(r.aHits===r.bHits?'Угадываете друг друга одинаково.':((r.aHits>r.bHits?na:nb)+' чуть лучше «читает» партнёра.'))+(proj>=2?' '+esc('Несколько раз кто-то «угадывал» партнёра, просто выбирая свой ответ. Это ')+'<b>ошибка проекции</b>'+esc(': мы часто думаем, что любимый человек хочет того же, что и мы.'):''),
+    'Задайте друг другу 3 вопроса «а что бы ты выбрал(а)?» про еду, отпуск и выходные.', null, null,
+    ['Психолог Джон Готтман называет это «картой любви»: насколько хорошо вы знаете мелочи мира партнёра. По его наблюдениям, пары с подробной «картой» легче переживают трудные периоды.','John Gottman, «7 принципов счастливого брака» (наблюдения практика); проекция — Kenny & Acitelli, 2001']);
   /* 2. Ссоры */
   var c3a=(A.q3||{}).me, c3b=(B.q3||{}).me, pw=(c3a===0&&c3b===1)||(c3a===1&&c3b===0);
   var m2=c3a===c3b?'happy':(pw?'grumpy':'ok');
   h+=sec('Ссоры и примирение',m2, null,
-    c3a===c3b?'После ссоры вам обоим нужно одно: '+sh('q3',c3a)+'.':(pw?(c3a===0?na:nb)+' хочет обсудить сразу, '+(c3a===0?nb:na)+' — сначала остыть.':na+': '+sh('q3',c3a)+'. '+nb+': '+sh('q3',c3b)+'.'),
+    c3a===c3b?esc('После ссоры вам обоим нужно одно: '+sh('q3',c3a)+'. Не придётся спорить, как мириться.'):(pw?esc('У вас классическая схема ')+'<b>«догоняющий — отстраняющийся»</b>'+esc(': '+(c3a===0?na:nb)+' хочет обсудить сразу, '+(c3a===0?nb:na)+' — сначала остыть. Чем сильнее один догоняет, тем дальше уходит второй.'):esc(na+': '+sh('q3',c3a)+'. '+nb+': '+sh('q3',c3b)+'.')),
     'Договоритесь о слове «пауза»: 20 минут остываете и обязательно возвращаетесь к разговору.',
-    r.mir?'<p class="small muted">Кто первым мирится: '+esc(lc1(r.mir))+'</p>':'', m2==='happy'?'makeup':null);
+    r.mir?'<p class="small muted">Кто первым мирится: '+esc(lc1(r.mir))+'</p>':'', m2==='happy'?'makeup':null,
+    pw?['Психологи называют эту схему «требование — отстранение». Она одна из самых частых в парах и сама по себе не значит, что отношения плохие. Важно, чтобы оба её замечали.','Christensen & Heavey, 1990; John Gottman, исследования конфликтов в парах']:['Конфликт — один из пяти главных признаков, по которым большое исследование пар предсказывало удовлетворённость отношениями. Важно не отсутствие ссор, а то, как вы из них выходите.','Joel et al., 2020, журнал PNAS (43 исследования, 11 196 пар)']);
   /* 3. Поддержка */
   var m3=(apA>=7&&apB>=7)?'happy':(Math.min(apA,apB)<=4?'grumpy':'ok');
   h+=sec('Поддержка',m3, 'Замечают старания: '+na+' '+apA+'/10 · '+nb+' '+apB+'/10',
-    'На хорошие новости '+na+' ждёт от партнёра '+sh('q5',(A.q5||{}).me)+', а '+nb+' — '+sh('q5',(B.q5||{}).me)+'.',
-    'Раз в день одно конкретное «спасибо»: не «за всё», а «что забрал(а) посылку».');
+    esc('На хорошие новости '+na+' ждёт от партнёра '+sh('q5',(A.q5||{}).me)+', а '+nb+' — '+sh('q5',(B.q5||{}).me)+'.'),
+    'Раз в день одно конкретное «спасибо»: не «за всё», а «что забрал(а) посылку».', null, null,
+    ['В исследовании 11 000 пар ощущение, что партнёр тебя ценит, оказалось одним из самых сильных признаков счастливых отношений. А то, как партнёр радуется вашим хорошим новостям, по другим исследованиям, значит для пары даже больше, чем поддержка в плохие дни.','Joel et al., 2020, PNAS; Gable et al., 2006']);
   /* 4. Близость */
   var dist=[0,1].filter(function(n){return nsA[n]!==nsB[n]});
   var m4=(cA>=8&&cB>=8)?'happy':((Math.abs(cA-cB)>=3||Math.min(cA,cB)<=4)?'grumpy':'ok');
   h+=sec('Надёжность',m4, 'Уверены друг в друге: '+na+' '+cA+'/10 · '+nb+' '+cB+'/10',
-    dist.length?'Разошлись во мнениях: «'+dist.map(function(n){return nsJ.items[n].toLowerCase()}).join('», «')+'».':'В вопросах личного пространства вы совпали.',
-    dist.length?'Обсудите, что для вас норм, и договоритесь. Тут нет правильного ответа, есть ваш.':null);
+    esc(dist.length?'Разошлись во мнениях: «'+dist.map(function(n){return nsJ.items[n].toLowerCase()}).join('», «')+'».':'В вопросах личного пространства вы совпали.'),
+    dist.length?'Обсудите, что для вас норм, и договоритесь. Тут нет правильного ответа, есть ваш.':null, null, null,
+    ['Уверенность, что партнёр с вами всерьёз и надолго, — самый сильный признак удовлетворённости отношениями в большом исследовании пар. Сильнее любых черт характера.','Joel et al., 2020, журнал PNAS (43 исследования, 11 196 пар)']);
   /* 5. Деньги */
   var m9a=(A.q9||{}).me, m9b=(B.q9||{}).me;
   h+=sec('Деньги',m9a===m9b?'happy':'ok', null,
-    m9a===m9b?'С внезапными 100 000 ₽ вы оба выбрали одно: '+sh('q9',m9a)+'.':na+' выбирает '+sh('q9',m9a)+', '+nb+' — '+sh('q9',m9b)+'. Разные суперсилы.',
-    'Заведите общую «копилку на мечту» и решите вдвоём, на что она.', null, m9a===m9b?'suitcase':null);
+    esc(m9a===m9b?'С внезапными 100 000 ₽ вы оба выбрали одно: '+sh('q9',m9a)+'.':na+' выбирает '+sh('q9',m9a)+', '+nb+' — '+sh('q9',m9b)+'. Разные суперсилы: один умеет радоваться, другой — беречь.'),
+    'Заведите общую «копилку на мечту» и решите вдвоём, на что она.', null, m9a===m9b?'suitcase':null,
+    ['Споры о деньгах сильнее других тем ссор связаны с риском расставания — так показало исследование тысяч семейных пар. Поэтому договориться о деньгах заранее — одна из лучших инвестиций в отношения.','Dew, Britt & Huston, 2012, журнал Family Relations']);
   /* 6. Быт */
   var bd=[2,3,4].filter(function(n){return nsA[n]!==nsB[n]});
   h+=sec('Быт',bd.length===0?'happy':(bd.length>=2?'grumpy':'ok'), null,
-    bd.length?'Спорные пункты: «'+bd.map(function(n){return nsJ.items[n].toLowerCase()}).join('», «')+'».':'По носкам, посуде и покупкам вы совпали. Редкая удача!',
-    'Почти в каждой паре оба думают, что делают по дому больше: свои дела мы замечаем лучше.',
-    r.byt?'<p class="small muted">Главный по быту: '+esc(lc1(r.byt))+'</p>':'');
+    esc(bd.length?'Спорные пункты: «'+bd.map(function(n){return nsJ.items[n].toLowerCase()}).join('», «')+'».':'По носкам, посуде и покупкам вы совпали. Редкая удача!'),
+    'Распишите вдвоём 5 главных домашних дел и поделите их. Так спорить приходится о фактах, а не об ощущениях.',
+    r.byt?'<p class="small muted">Главный по быту: '+esc(lc1(r.byt))+'</p>':'', null,
+    ['Когда партнёров просят оценить свой вклад в домашние дела, в сумме почти всегда выходит больше 100%. Это не враньё: свои дела мы замечаем лучше, чем чужие.','Ross & Sicoly, 1979, классическое исследование пар']);
   /* 7. Планы */
   var quotes=((A.q13||'').trim()?'<div class="quote">'+esc(na)+': «'+esc(A.q13.trim())+'»</div>':'')+((B.q13||'').trim()?'<div class="quote b">'+esc(nb)+': «'+esc(B.q13.trim())+'»</div>':'');
-  h+=sec('Планы и досуг',simPr>=4?'happy':(simPr<=1?'grumpy':'ok'), 'Совпали в '+simPr+' из '+prJ.items.length, 'Ваши желания на этот год:',
-    'Пары, которые пробуют вместе новое, дольше сохраняют «искру». Выберите одно желание и назначьте дату.', quotes);
+  h+=sec('Планы и досуг',simPr>=4?'happy':(simPr<=1?'grumpy':'ok'), 'Совпали в '+simPr+' из '+prJ.items.length, esc('Ваши желания на этот год:'),
+    'Выберите одно желание из ответов выше и назначьте дату.', quotes, null,
+    ['Пары, которые вместе пробуют что-то новое и необычное, чувствуют себя в отношениях счастливее — это подтвердили эксперименты с парами. Новизна возвращает ощущение начала отношений.','Aron et al., 2000, Journal of Personality and Social Psychology']);
   /* 8. Юмор */
   var hA=(A.q12||{}).me, hB=(B.q12||{}).me, inst=q('q12').inst;
   h+=sec('Юмор',hA===hB?'happy':'ok', null,
-    hA===hB?'Смеётесь над одним и тем же: над '+inst[hA]+'.':na+' смеётся над '+inst[hA]+', '+nb+' — над '+inst[hB]+'.', null);
+    esc(hA===hB?'Смеётесь над одним и тем же: над '+inst[hA]+'.':na+' смеётся над '+inst[hA]+', '+nb+' — над '+inst[hB]+'. Есть чем поделиться друг с другом.'), null, null, null,
+    ['По мета-анализу десятков исследований, общий юмор связан с тем, насколько партнёры довольны отношениями.','Hall, 2017, журнал Personal Relationships']);
   h+='<p class="small muted center">Разбор развлекательный и собран по вашим ответам. Это не психологическая диагностика.</p>';
   return h;
 }
