@@ -400,6 +400,17 @@ function render(){
     h='<div class="card"><h2>Данные для соляра</h2><p class="muted small">Время рождения — если знаете: с ним точнее. Город можно ввести любой: начните печатать, появятся подсказки.</p>'+
       '<datalist id="cityList">'+CITIES.map(function(c){return '<option value="'+esc(c[0])+'">'}).join('')+'</datalist>'+
       solarfields('A')+solarfields('B')+'<p class="small muted" id="serr" aria-live="polite"></p><button class="btn" id="go" disabled>Рассчитать соляр ✨</button></div>';
+  } else if(S.step==='solo'){
+    h='<div class="card"><div class="scene-wrap">'+CATART.window()+'</div><h2>Ваш соляр на год ✨</h2>'+
+      '<p class="muted small">Соляр — астрологический прогноз на ваш текущий год жизни, от дня рождения до следующего. Время рождения — если знаете: с ним точнее. Город можно ввести любой: начните печатать, появятся подсказки.</p>'+
+      '<div class="field" style="border-color:var(--line);background:#f7f6fb"><label for="soloName">Как вас зовут</label><input type="text" id="soloName" maxlength="20" autocomplete="off" placeholder="Например, Аня" value="'+esc(S.a==='Партнёр 1'?'':S.a)+'"></div>'+
+      '<datalist id="cityList">'+CITIES.map(function(c){return '<option value="'+esc(c[0])+'">'}).join('')+'</datalist>'+
+      solarfields('A').replace(/<label>[^<]*<\/label>/,'')+'<p class="small muted" id="serr" aria-live="polite"></p><button class="btn" id="go" disabled>Рассчитать соляр ✨</button></div>';
+  } else if(S.step==='solores'){
+    var rs=solarCalc(S.solar.A);
+    h='<div class="card rep"><div class="scene-wrap">'+CATART.hero()+'</div>'+solarCard('A',rs)+
+      '<p class="small muted center">Соляр — развлекательный астрологический прогноз, рассчитан по положению планет в момент вашего дня рождения.</p>'+
+      '<button class="btn" id="go">Посчитать для другого человека</button></div>';
   } else if(S.step==='solarres'){
     var ra=solarCalc(S.solar.A), rb=solarCalc(S.solar.B);
     h='<div class="card rep"><div class="scene-wrap">'+CATART.window()+'</div>'+solarCouple(ra,rb)+solarCard('A',ra)+solarCard('B',rb)+'<p class="small muted center">Соляр — развлекательный астрологический прогноз, рассчитан по положению планет в момент вашего дня рождения.</p><button class="btn" id="go">Дальше</button></div>';
@@ -425,7 +436,7 @@ function render(){
 function solarfields(w){
   var d=S.solar[w]||{};
   return '<div class="field'+(w==='B'?' b':'')+'" style="gap:8px"><label>'+esc(nm(w))+'</label>'+
-    '<div class="two"><input type="date" id="bd'+w+'" value="'+esc(d.date||'')+'" aria-label="Дата рождения '+esc(nm(w))+'"><input type="time" id="bt'+w+'" value="'+esc(d.time||'')+'" aria-label="Время рождения '+esc(nm(w))+'"></div>'+
+    '<label for="bd'+w+'">Дата и время рождения</label><div class="two"><input type="date" id="bd'+w+'" value="'+esc(d.date||'')+'" aria-label="Дата рождения '+esc(nm(w))+'"><input type="time" id="bt'+w+'" value="'+esc(d.time||'')+'" aria-label="Время рождения '+esc(nm(w))+'"></div>'+
     '<label for="bc'+w+'">Город рождения</label><input type="text" id="bc'+w+'" list="cityList" autocomplete="off" placeholder="Начните вводить город" value="'+esc(d.city||'')+'">'+
     '<label for="bn'+w+'">Где живёте сейчас</label><input type="text" id="bn'+w+'" list="cityList" autocomplete="off" placeholder="Начните вводить город" value="'+esc(d.now||'')+'"></div>';
 }
@@ -605,6 +616,22 @@ function bind(){
     return;
   }
   if(S.step==='solarres'){go.onclick=function(){S.step='fbintro';render()};return}
+  if(S.step==='solores'){go.onclick=function(){S.a='';S.solar.A={};S.step='solo';render()};return}
+  if(S.step==='solo'){
+    var nmI=document.getElementById('soloName');
+    var upd3=function(){S.a=nmI.value.trim()||'Ваш соляр';S.solar.A={date:document.getElementById('bdA').value,time:document.getElementById('btA').value,city:document.getElementById('bcA').value,now:document.getElementById('bnA').value};go.disabled=!S.solar.A.date};
+    [nmI].concat(['bd','bt','bc','bn'].map(function(p){return document.getElementById(p+'A')})).forEach(function(el){el.oninput=el.onchange=upd3}); upd3();
+    go.onclick=function(){
+      var err=document.getElementById('serr'); if(!S.solar.A.city)S.solar.A.city='Москва'; if(!S.solar.A.now)S.solar.A.now=S.solar.A.city;
+      var names=[S.solar.A.city,S.solar.A.now].filter(function(n,i,a){return a.indexOf(n)===i&&!cityFind(n)});
+      if(!names.length){S.step='solores';render();return}
+      go.disabled=true; err.textContent='Ищем город…';
+      Promise.all(names.map(geocode)).then(function(res){var bad=names.filter(function(_,i){return !res[i]});
+        if(bad.length){go.disabled=false;err.textContent='Не нашли: «'+bad.join('», «')+'». Проверьте написание или выберите ближайший крупный город из подсказок.';return}
+        S.step='solores';render();});
+    };
+    return;
+  }
   if(S.step==='solarsoon'){go.onclick=function(){S.step='fbintro';render()};return}
   if(S.step==='fbintro'){go.onclick=function(){S.step='fb';S.i=0;render()};return}
   if(S.step==='done'){
@@ -829,7 +856,7 @@ function demo(){
   S.step='report2'; render();
 }
 
-if(location.hash==='#demo'){demo()}else if(location.hash==='#solar'){S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
+if(location.hash==='#demo'){demo()}else if(location.hash==='#solo'){S.step='solo';render()}else if(location.hash==='#solar'){S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
 </script>
 
 </body>
