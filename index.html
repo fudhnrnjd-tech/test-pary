@@ -805,7 +805,7 @@ function demo(){
   S.step='report2'; render();
 }
 
-if(location.hash==='#demo'){demo()}else{render()}
+if(location.hash==='#demo'){demo()}else if(location.hash==='#solar'){S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
 </script>
 
 </body>
