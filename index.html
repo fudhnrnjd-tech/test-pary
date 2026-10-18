@@ -95,6 +95,8 @@ pre.out{white-space:pre-wrap;word-break:break-word;font-size:.8rem;background:#f
 .fact{padding:12px 14px;border-radius:16px;background:#f7f6fb;font-size:.95rem}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .two input{min-width:0}
+select{font:inherit;font-size:1rem;border:0;background:transparent;color:var(--ink);padding:4px 0;width:100%}
+input[type=date],input[type=time]{font:inherit;border:0;background:#fff;border-radius:10px;padding:8px;color:var(--ink);width:100%}
 .rep{display:grid;gap:14px}
 .arch{border-radius:24px;padding:20px;background:linear-gradient(135deg,var(--a-soft),var(--b-soft));display:grid;gap:8px;text-align:center}
 .arch .lbl{font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -144,6 +146,7 @@ pre.out{white-space:pre-wrap;word-break:break-word;font-size:.8rem;background:#f
 <body>
 <div class="app" id="app"></div>
 
+<script src="astronomy.browser.min.js"></script>
 <script>
 /* Иллюстрации Мишани и Кнопки, рисуются кодом (SVG). Сцены: hero, cuddle, window, makeup, backs, suitcase */
 var CATART=(function(){
@@ -389,13 +392,16 @@ function render(){
   } else if(S.step==='report'){
     h='<div class="card rep">'+reporthtml()+'<button class="btn" id="go">Дальше</button></div>';
   } else if(S.step==='solar'){
-    h='<div class="card">'+CATS+'<div class="center" style="display:grid;gap:8px"><h2>Хотите соляр пары на год? ✨</h2><p class="muted">Прогноз на год вперёд по датам, времени и месту рождения: для каждого и для вас вдвоём.</p></div>'+
+    h='<div class="card">'+CATS+'<div class="center" style="display:grid;gap:8px"><h2>Хотите соляр пары на год? ✨</h2><p class="muted">Прогноз на ваш текущий год жизни: для каждого и для вас вдвоём. Нужны дата, время и город рождения. Данные никуда не отправляются.</p></div>'+
       '<div class="row"><button class="btn ghost" id="no">Нет, спасибо</button><button class="btn" id="yes">Хочу</button></div></div>';
   } else if(S.step==='solarsoon'){
     h='<div class="card center">'+CATS+'<h2>Скоро будет! 🌙</h2><p class="muted">Соляр пары сейчас в разработке. Спасибо, что сказали, что он вам интересен: так мы понимаем, что делать первым.</p><button class="btn" id="go">Дальше</button></div>';
   } else if(S.step==='solarform'){
-    h='<div class="card"><h2>Данные для соляра</h2><p class="muted small">Дата обязательна. Время и город рождения — если знаете: с ними прогноз точнее.</p>'+
-      solarfields('A')+solarfields('B')+'<button class="btn" id="go" disabled>Готово</button></div>';
+    h='<div class="card"><h2>Данные для соляра</h2><p class="muted small">Время рождения — если знаете: с ним точнее. Город «сейчас» — где вы обычно встречаете день рождения.</p>'+
+      solarfields('A')+solarfields('B')+'<button class="btn" id="go" disabled>Рассчитать соляр ✨</button></div>';
+  } else if(S.step==='solarres'){
+    var ra=solarCalc(S.solar.A), rb=solarCalc(S.solar.B);
+    h='<div class="card rep"><div class="scene-wrap">'+CATART.window()+'</div>'+solarCouple(ra,rb)+solarCard('A',ra)+solarCard('B',rb)+'<p class="small muted center">Соляр — развлекательный астрологический прогноз, рассчитан по положению планет в момент вашего дня рождения.</p><button class="btn" id="go">Дальше</button></div>';
   } else if(S.step==='fbintro'){
     h='<div class="card center">'+CATS+'<h2>Помогите сделать тест лучше</h2><p class="muted">7 коротких вопросов про сам тест. Ваши ответы на тест мы не видим и не спрашиваем.</p><button class="btn" id="go">Ответить</button></div>';
   } else if(S.step==='fb'){
@@ -416,12 +422,12 @@ function render(){
 }
 
 function solarfields(w){
-  var d=S.solar[w];
+  var d=S.solar[w]||{}, opt=function(sel){return CITIES.map(function(c){return '<option'+(c[0]===sel?' selected':'')+'>'+esc(c[0])+'</option>'}).join('')};
   return '<div class="field'+(w==='B'?' b':'')+'" style="gap:8px"><label>'+esc(nm(w))+'</label>'+
-    '<input type="date" id="bd'+w+'" value="'+esc(d.date||'')+'" aria-label="Дата рождения '+esc(nm(w))+'">'+
-    '<div class="two"><input type="time" id="bt'+w+'" value="'+esc(d.time||'')+'" aria-label="Время рождения '+esc(nm(w))+'" placeholder="Время"><input type="text" id="bc'+w+'" maxlength="40" value="'+esc(d.city||'')+'" placeholder="Город рождения" aria-label="Город рождения '+esc(nm(w))+'"></div></div>';
+    '<div class="two"><input type="date" id="bd'+w+'" value="'+esc(d.date||'')+'" aria-label="Дата рождения '+esc(nm(w))+'"><input type="time" id="bt'+w+'" value="'+esc(d.time||'')+'" aria-label="Время рождения '+esc(nm(w))+'"></div>'+
+    '<label for="bc'+w+'">Город рождения</label><select id="bc'+w+'">'+opt(d.city||'Москва')+'</select>'+
+    '<label for="bn'+w+'">Город сейчас</label><select id="bn'+w+'">'+opt(d.now||d.city||'Москва')+'</select></div>';
 }
-
 function jointhtml(j){
   var A=S.ans.A[j.id]||{}, B=S.ans.B[j.id]||{};
   var h='<h2>'+esc(j.text)+'</h2>'+(j.hint?'<p class="muted small">'+esc(j.hint)+'</p>':'')+'<div class="joint">';
@@ -462,6 +468,53 @@ function done(q,v){
   return true;
 }
 function jointdone(j){var A=S.ans.A[j.id]||{},B=S.ans.B[j.id]||{};return j.items.every(function(_,n){return A[n]!=null&&B[n]!=null})}
+
+/* ===== СОЛЯР: расчёт (astronomy-engine, MIT) + трактовки ===== */
+var CITIES=[['Москва',55.756,37.617,3],['Санкт-Петербург',59.939,30.316,3],['Новосибирск',55.008,82.935,7],['Екатеринбург',56.838,60.597,5],['Казань',55.796,49.106,3],['Нижний Новгород',56.327,44.006,3],['Челябинск',55.160,61.403,5],['Самара',53.195,50.101,4],['Омск',54.989,73.369,6],['Ростов-на-Дону',47.222,39.720,3],['Уфа',54.735,55.958,5],['Красноярск',56.010,92.852,7],['Воронеж',51.661,39.200,3],['Пермь',58.010,56.229,5],['Волгоград',48.708,44.513,3],['Краснодар',45.035,38.975,3],['Саратов',51.533,46.034,4],['Тюмень',57.153,65.534,5],['Тольятти',53.507,49.420,4],['Ижевск',56.852,53.204,4],['Барнаул',53.348,83.779,7],['Иркутск',52.287,104.305,8],['Ульяновск',54.314,48.403,4],['Хабаровск',48.480,135.071,10],['Владивосток',43.115,131.885,10],['Ярославль',57.626,39.893,3],['Махачкала',42.983,47.504,3],['Томск',56.484,84.948,7],['Оренбург',51.768,55.097,5],['Кемерово',55.355,86.087,7],['Калининград',54.710,20.452,2],['Сочи',43.585,39.723,3],['Тула',54.193,37.617,3],['Рязань',54.629,39.742,3],['Мурманск',68.970,33.075,3],['Архангельск',64.539,40.516,3],['Севастополь',44.616,33.525,3],['Минск',53.904,27.559,3],['Алматы',43.238,76.946,5],['Астана',51.169,71.449,5],['Ташкент',41.311,69.280,5],['Бишкек',42.874,74.570,6],['Ереван',40.177,44.513,4],['Тбилиси',41.716,44.783,4],['Баку',40.409,49.867,4],['Киев',50.450,30.524,2],['Кишинёв',47.011,28.864,2],['Рига',56.950,24.106,2],['Таллин',59.437,24.754,2],['Вильнюс',54.687,25.280,2]];
+var SIGNS=['Овен','Телец','Близнецы','Рак','Лев','Дева','Весы','Скорпион','Стрелец','Козерог','Водолей','Рыбы'];
+var SIGNS_IN=['в Овне','в Тельце','в Близнецах','в Раке','во Льве','в Деве','в Весах','в Скорпионе','в Стрельце','в Козероге','в Водолее','в Рыбах'];
+var ASC_T=['Год смелых решений и новых стартов. Энергии много, терпения меньше: захочется действовать первым.','Спокойный, «заземлённый» год. Хочется стабильности, уюта, вкусной еды и понятных денег.','Год движения и общения: поездки, переписки, новые знакомства и идеи.','Год дома и близких. В фокусе семья, уют и чувства, вы мягче и чувствительнее обычного.','Год, когда хочется сиять: творчество, внимание, яркие моменты и смелое «я».','Год наведения порядка: режим, работа и дела, до которых давно не доходили руки.','Год отношений и баланса: партнёрство, красота, умение договариваться.','Год глубины и перемен: отпустить старое и разобраться в главном.','Год широких горизонтов: путешествия, учёба, новые смыслы и оптимизм.','Год целей и ответственности: карьера, планы на годы вперёд, серьёзные шаги.','Год свободы и нестандартных решений: друзья, идеи, неожиданные повороты.','Год интуиции и мечты: творчество, отдых, внутренняя тишина.'];
+var HOUSE_T=['вы сами: новый образ, личные цели и решения','деньги и ценности: доходы, покупки, уверенность в себе','общение и учёба: поездки, курсы, разговоры, соседи и родственники','дом и семья: ремонт, переезд, уют, близкие','радость и романтика: свидания, творчество, удовольствия','работа и режим: дела, привычки, забота о себе','партнёрство: отношения в центре года','большие перемены, общие деньги и доверие','путешествия, обучение и новые взгляды','карьера и статус: заметные шаги в работе','друзья и планы: компании, сообщества, мечты на будущее','отдых и восстановление: тишина, внутренняя работа, перезагрузка'];
+var MOON_T=['эмоции вспыхивают быстро и быстро проходят','нужна стабильность и телесный комфорт','настроение меняется, помогают разговоры','тянет домой, чувствительность выше обычного','хочется, чтобы замечали и хвалили','успокаивают порядок и забота о мелочах','ссоры выбивают из колеи, важна гармония','чувства глубокие и сильные','спасают движение и новые впечатления','эмоции сдержанные, опора — в делах','нужны свобода и своё пространство','мечтательность, нужны тишина и отдых'];
+var VENUS_T=['любовь с инициативой и страстью','любовь через нежность, подарки и уют','любовь через флирт, разговоры и лёгкость','любовь через заботу и семейное тепло','любовь с размахом: романтика и красивые жесты','любовь через заботу делами и внимание к мелочам','любовь через гармонию и красивые свидания','любовь глубокая, с сильными чувствами','любовь-приключение: поездки и новое вдвоём','любовь надёжная, время серьёзных шагов','любовь как дружба: свобода и общие интересы','любовь нежная и романтичная, с ноткой мечты'];
+var ELEM=['огня','земли','воздуха','воды'];
+function sNorm(x){x%=360;return x<0?x+360:x}
+function cityBy(name){for(var i=0;i<CITIES.length;i++)if(CITIES[i][0]===name)return CITIES[i];return CITIES[0]}
+function solarCalc(d){
+  if(!window.Astronomy)return null;
+  var bc=cityBy(d.city), nc=cityBy(d.now||d.city);
+  var p=d.date.split('-'), tm=(d.time||'12:00').split(':');
+  var birth=new Date(Date.UTC(+p[0],+p[1]-1,+p[2],+tm[0]-bc[3],+tm[1]));
+  var natal=Astronomy.SunPosition(Astronomy.MakeTime(birth)).elon;
+  var now=new Date(), y=now.getUTCFullYear(), bd=new Date(Date.UTC(y,+p[1]-1,+p[2]));
+  if(bd>now)bd=new Date(Date.UTC(y-1,+p[1]-1,+p[2]));
+  var t=Astronomy.SearchSunLongitude(natal, Astronomy.MakeTime(new Date(bd.getTime()-5*864e5)), 20);
+  var ramc=sNorm(Astronomy.SiderealTime(t)*15+nc[2]), eps=23.4393*Math.PI/180, r=ramc*Math.PI/180, f=nc[1]*Math.PI/180;
+  var asc=sNorm(Math.atan2(Math.cos(r),-(Math.sin(r)*Math.cos(eps)+Math.tan(f)*Math.sin(eps)))*180/Math.PI);
+  var sun=Astronomy.SunPosition(t).elon, moon=Astronomy.EclipticGeoMoon(t).lon, ven=Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body.Venus,t,true)).elon;
+  var ascS=Math.floor(asc/30), sunS=Math.floor(sun/30);
+  var local=new Date(t.date.getTime()+nc[3]*3600e3);
+  return {start:local, ascS:ascS, house:((sunS-ascS+12)%12)+1, moonS:Math.floor(moon/30), venS:Math.floor(ven/30), sunS:sunS, exact:!!d.time, city:nc[0]};
+}
+function solarDate(dt){var m=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];return dt.getUTCDate()+' '+m[dt.getUTCMonth()]+' '+dt.getUTCFullYear()+' в '+('0'+dt.getUTCHours()).slice(-2)+':'+('0'+dt.getUTCMinutes()).slice(-2)}
+function solarCard(w,res){
+  var cls=w==='A'?'a':'b';
+  return '<div class="sec"><div class="sechead" style="padding-top:14px"><h3>'+esc(nm(w))+'</h3><span class="chip '+(w==='A'?'grumpy':'ok')+'">Солнце '+esc(SIGNS_IN[res.sunS])+'</span></div>'+
+    '<p class="small muted">Ваш солярный год начался '+esc(solarDate(res.start))+' ('+esc(res.city)+')'+(res.exact?'':', без точного времени рождения прогноз приблизительный')+'.</p>'+
+    '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+esc(ASC_T[res.ascS])+'</p>'+
+    '<div class="sci"><span class="t">☀️ Главная сфера года · '+res.house+' дом</span><p>'+esc(HOUSE_T[res.house-1].charAt(0).toUpperCase()+HOUSE_T[res.house-1].slice(1))+'.</p></div>'+
+    '<p class="small"><b>🌙 Эмоции:</b> Луна '+esc(SIGNS_IN[res.moonS])+' — '+esc(MOON_T[res.moonS])+'.</p>'+
+    '<p class="small"><b>💗 Любовь:</b> Венера '+esc(SIGNS_IN[res.venS])+' — '+esc(VENUS_T[res.venS])+'.</p></div>';
+}
+function solarCouple(a,b){
+  var na=nm('A'), nb=nm('B'), lines=[];
+  if(a.house===b.house) lines.push('Вы оба проживаете год про одно: '+HOUSE_T[a.house-1]+'. Отличный год, чтобы делать это вместе.');
+  else lines.push(na+': год про '+HOUSE_T[a.house-1].split(':')[0]+'. '+nb+': год про '+HOUSE_T[b.house-1].split(':')[0]+'. Поддерживайте друг друга в своих темах.');
+  if(a.house===5||a.house===7||b.house===5||b.house===7) lines.push('У кого-то из вас Солнце года в доме любви или партнёрства: хорошее время для общих шагов и романтики.');
+  if(a.venS%4===b.venS%4) lines.push('Венеры обоих в стихии '+ELEM[a.venS%4]+': в любви в этом году вы говорите на одном языке.');
+  else lines.push('Венеры в разных стихиях ('+ELEM[a.venS%4]+' и '+ELEM[b.venS%4]+'): любите друг друга по-разному, и это стоит проговорить.');
+  return '<div class="arch"><div class="lbl">Соляр пары</div><h2>Ваш общий год</h2>'+lines.map(function(l){return '<p>'+esc(l)+'</p>'}).join('')+'</div>';
+}
 
 /* ===== РАСКРЫТИЕ ===== */
 function reveal(){
@@ -518,17 +571,17 @@ function bind(){
   if(S.step==='report2'){go.onclick=function(){if(location.hash==='#demo'){location.hash='';S={step:'intro',a:'',b:'',since:'',who:'A',i:0,ans:{A:{},B:{}},fb:{},solar:{want:null,A:{},B:{}}};}else{S.step='done'}render()};return}
   if(S.step==='report'){go.onclick=function(){S.step='solar';render()};return}
   if(S.step==='solar'){
-    document.getElementById('yes').onclick=function(){S.solar.want=true;S.step='solarsoon';render()};
+    document.getElementById('yes').onclick=function(){S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()};
     document.getElementById('no').onclick=function(){S.solar.want=false;S.step='fbintro';render()};
     return;
   }
   if(S.step==='solarform'){
-    var ids=['A','B'];
-    var upd2=function(){ids.forEach(function(w){S.solar[w]={date:document.getElementById('bd'+w).value,time:document.getElementById('bt'+w).value,city:document.getElementById('bc'+w).value.trim()}});go.disabled=!(S.solar.A.date&&S.solar.B.date)};
-    ids.forEach(function(w){['bd','bt','bc'].forEach(function(p){var el=document.getElementById(p+w);el.oninput=el.onchange=upd2})}); upd2();
-    go.onclick=function(){S.step='fbintro';render()};
+    var upd2=function(){['A','B'].forEach(function(w){S.solar[w]={date:document.getElementById('bd'+w).value,time:document.getElementById('bt'+w).value,city:document.getElementById('bc'+w).value,now:document.getElementById('bn'+w).value}});go.disabled=!(S.solar.A.date&&S.solar.B.date)};
+    ['A','B'].forEach(function(w){['bd','bt','bc','bn'].forEach(function(p){var el=document.getElementById(p+w);el.oninput=el.onchange=upd2})}); upd2();
+    go.onclick=function(){S.step='solarres';render()};
     return;
   }
+  if(S.step==='solarres'){go.onclick=function(){S.step='fbintro';render()};return}
   if(S.step==='solarsoon'){go.onclick=function(){S.step='fbintro';render()};return}
   if(S.step==='fbintro'){go.onclick=function(){S.step='fb';S.i=0;render()};return}
   if(S.step==='done'){
@@ -605,7 +658,7 @@ function compact(){
 }
 function payload(){
   var r=reveal();
-  var L=['Оценка теста пары (фокус-группа v5)'];
+  var L=['Оценка теста пары (фокус-группа v6)'];
   FEEDBACK.forEach(function(f){L.push('— '+f.text+' '+fmt(f,S.fb[f.id]))});
   L.push('— Соляр: '+(S.solar.want==null?'не дошли':(S.solar.want?'хотят':'не хотят')));
   L.push('— Угадали друг друга: '+r.aHits+' и '+r.bHits+' из '+r.n);
