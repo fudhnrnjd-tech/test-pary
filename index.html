@@ -266,30 +266,30 @@ var CATART=(function(){
    Шкалы и источники: см. question_evidence.md */
 var JOINT = [
   /* Близость (ECR-R; Joel 2020), быт (PREPARE/ENRICH), деньги (Dew 2012) */
-  {id:'q7', scale:'mix', type:'ns', text:'Норм или стрём?', hint:'Отвечайте вместе, спорить можно 😄', items:['Уехать на выходные с друзьями без второй половинки','Знать пароли от телефонов друг друга','Носки на полу до выходных','Посуда «отмокает» сутки','Купить дорогую вещь, не посоветовавшись','Спать в обнимку всю ночь']},
+  {id:'q7', scale:'mix', type:'ns', text:'Это норм или стрём?', hint:'Каждый отвечает за себя. Спорить можно 😄', items:['Уехать на выходные с друзьями без второй половинки','Знать пароли от телефонов друг друга','Носки валяются на полу до выходных','Оставить посуду отмокать до завтра','Купить дорогую вещь, не посоветовавшись','Спать в обнимку всю ночь']},
   /* Планы и игра (Aron 2000; PREPARE/ENRICH) */
-  {id:'q11', scale:'plans', type:'pairs', text:'Быстрый выбор', hint:'Каждый тапает своё, не думая', items:[['Настолки 🎲','Сериал 🎬'],['Дом за городом 🏡','Центр города 🌆'],['Отпуск по плану','Куда глаза глядят'],['Тусовка','Вечер вдвоём'],['Встать в 6','Проспать до обеда']]}
+  {id:'q11', scale:'plans', type:'pairs', text:'Что вам ближе?', hint:'Каждый выбирает за себя, не раздумывая', items:[['Настолки 🎲','Сериал 🎬'],['Дом за городом 🏡','Квартира в центре 🌆'],['Отпуск по плану','Отпуск спонтанно'],['Вечер с друзьями','Вечер вдвоём'],['Ранний подъём','Поспать подольше']]}
 ];
 var Q = [
   /* Понимание партнёра — Love Maps (Gottman), точность (Fletcher & Kerr 2010) */
-  {id:'q1', scale:'understand', type:'guess', text:'Доставка привезёт только одно блюдо. Что ты закажешь?', opts:['Пиццу 🍕','Суши 🍣','Шаурму 🌯','Салатик 🥗','«То же, что и ты» 😇'], short:['пиццу','суши','шаурму','салатик','«то же, что и ты»']},
-  {id:'q2', scale:'understand', type:'guess', text:'Какая мелочь бесит тебя сильнее всего?', opts:['Медленный интернет','Чавканье рядом','Опоздания','Голосовые на 5 минут','Гора посуды в раковине'], short:['медленный интернет','чавканье','опоздания','длинные голосовые','гору посуды']},
+  {id:'q1', scale:'understand', type:'guess', text:'Заказываете доставку, но можно выбрать только одно блюдо. Что выберешь?', opts:['Пиццу 🍕','Суши 🍣','Шаурму 🌯','Бургер 🍔','Салат 🥗'], short:['пиццу','суши','шаурму','бургер','салат']},
+  {id:'q2', scale:'understand', type:'guess', text:'Какая мелочь бесит тебя сильнее всего?', opts:['Медленный интернет','Когда рядом чавкают','Опоздания','Длинные голосовые сообщения','Гора посуды в раковине'], short:['медленный интернет','чавканье','опоздания','длинные голосовые','гору посуды']},
   /* Ссоры и примирение — Gottman 1998/2000, конфликт в топ-5 Joel 2020 */
-  {id:'q3', scale:'conflict', type:'guess', text:'После ссоры тебе нужно…', opts:['Обняться и проговорить сразу 🫂','Остыть пару часов 🧊','Чтобы принесли вкусняшку и сделали вид, что ничего не было 🍫','Поспать: утро вечера мудренее 😴'], short:['обняться и проговорить','остыть пару часов','вкусняшку и забыть','поспать']},
-  {id:'q4', scale:'conflict', type:'slider', text:'Кто у вас первым идёт мириться?', min:0, max:10, left:'чаще я', right:'чаще {P}'},
+  {id:'q3', scale:'conflict', type:'guess', text:'Что тебе нужно после ссоры?', opts:['Сразу обняться и всё обсудить 🫂','Остыть пару часов 🧊','Получить вкусняшку и забыть ссору 🍫','Лечь спать, утром всё пройдёт 😴'], short:['сразу обняться и всё обсудить','остыть пару часов','вкусняшку и забыть ссору','лечь спать']},
+  {id:'q4', scale:'conflict', type:'slider', who:true, text:'Кто у вас обычно первым идёт мириться?', min:0, max:10, left:'чаще я', right:'чаще {P}'},
   /* Поддержка — Gable 2004/2006, Algoe 2012, appreciation в топ-5 Joel 2020 */
-  {id:'q5', scale:'support', type:'guess', text:'Ты прибегаешь: «Меня повысили!» Какая реакция порадует тебя больше всего?', opts:['«Рассказывай всё!» 🎉','«Отмечаем!» 🍾','«А зарплату подняли?» 🤓','«Я знал(а), что так будет» 😌'], short:['«рассказывай всё!»','«отмечаем!»','«а зарплату подняли?»','«я знал(а)!»']},
-  {id:'q6', scale:'support', type:'slider', text:'Замечает ли {P}, что ты делаешь для вас двоих?', min:0, max:10, left:'совсем не замечает', right:'всегда замечает и благодарит'},
+  {id:'q5', scale:'support', type:'guess', text:'Тебя повысили на работе, ты рассказываешь об этом. Какая реакция партнёра порадует тебя больше всего?', opts:['«Рассказывай всё!» 🎉','«Отмечаем!» 🍾','«А зарплату подняли?» 🤓','«Я знал(а), что так будет» 😌'], short:['«рассказывай всё!»','«отмечаем!»','«а зарплату подняли?»','«я знал(а)!»']},
+  {id:'q6', scale:'support', type:'slider', text:'Замечает ли {P}, что ты делаешь для вас двоих?', hint:'0 — совсем не замечает, 10 — всегда замечает и благодарит', min:0, max:10, left:'совсем не замечает', right:'всегда замечает'},
   /* Близость и надёжность — ECR-R/ECR-S, воспринимаемая преданность №1 у Joel 2020 */
-  {id:'q8', scale:'closeness', type:'slider', text:'Если завтра всё пойдёт наперекосяк, насколько ты уверен(а), что {P} будет рядом?', min:0, max:10, left:'сомневаюсь', right:'на все 100'},
+  {id:'q8', scale:'closeness', type:'slider', text:'Если в жизни начнутся трудности, насколько ты уверен(а), что {P} тебя поддержит?', hint:'0 — совсем не уверен(а), 10 — уверен(а) на 100%', min:0, max:10, left:'не уверен(а)', right:'уверен(а) на 100%'},
   /* Деньги — Dew, Britt & Huston 2012 */
-  {id:'q9', scale:'money', type:'guess', text:'Вам внезапно свалились 100 000 ₽. Куда их?', opts:['Спонтанный отпуск ✈️','В копилку 🏦','Что-то для дома 🛋️','Каждому по 50 на хотелки 🎁'], short:['отпуск','копилку','что-то для дома','по 50 на хотелки']},
+  {id:'q9', scale:'money', type:'guess', text:'Вам неожиданно достались 100 000 ₽. На что их потратить?', opts:['Поехать в отпуск ✈️','Отложить 🏦','Купить что-то для дома 🛋️','Поделить пополам, каждому на свои хотелки 🎁'], short:['отпуск','отложить','купить что-то для дома','поделить пополам']},
   /* Быт и роли — восприятие вклада */
-  {id:'q10', scale:'roles', type:'slider', text:'Кто у вас главный по быту?', min:0, max:10, left:'я', right:'{P}'},
+  {id:'q10', scale:'roles', type:'slider', who:true, text:'Кто у вас больше занимается домашними делами?', min:0, max:10, left:'чаще я', right:'чаще {P}'},
   /* Юмор — Hall 2017 */
-  {id:'q12', scale:'humor', type:'guess', text:'Над чем ты смеёшься до слёз?', opts:['Мемы','Стендап','Мои же неудачи','Собственные шутки','Видео с котиками'], short:['мемы','стендап','свои неудачи','свои шутки','видео с котиками'], inst:['мемами','стендапом','своими неудачами','своими же шутками','видео с котиками']},
+  {id:'q12', scale:'humor', type:'guess', text:'Над чем ты смеёшься до слёз?', opts:['Мемы','Стендап','Свои неудачи','Свои же шутки','Видео с котиками'], short:['мемы','стендап','свои неудачи','свои шутки','видео с котиками'], inst:['мемами','стендапом','своими неудачами','своими же шутками','видео с котиками']},
   /* Планы — цитата в отчёт */
-  {id:'q13', scale:'plans', type:'open', text:'Одна вещь, которую ты хочешь сделать вместе с {P} в этом году', ph:'Например: съездить на море без телефонов'}
+  {id:'q13', scale:'plans', type:'open', text:'Что ты хочешь сделать вместе в этом году? Напиши одну вещь', ph:'Например: съездить на море без телефонов'}
 ];
 var FEEDBACK = [
   {id:'f_acc', type:'slider', text:'Насколько разбор получился про вас?', min:1, max:5, left:'вообще не про нас', right:'прямо в точку'},
@@ -372,13 +372,13 @@ function render(){
       '<label class="check"><input type="checkbox" id="c1"><span>Нам обоим есть 18 лет. Мы понимаем, что тест развлекательный и не заменяет консультацию специалиста</span></label>'+
       '<button class="btn" id="go" disabled>Начать</button></div>';
   } else if(S.step==='jointintro'){
-    h='<div class="card center">'+CATS+'<h2>Часть 1. Вместе</h2><p class="muted">Садитесь рядом. Каждый отвечает за себя: рыжие кнопки — '+esc(nm('A'))+', сиреневые — '+esc(nm('B'))+'. Спорить можно и нужно 😄</p><button class="btn" id="go">Поехали</button></div>';
+    h='<div class="card center">'+CATS+'<h2>Часть 1. Вместе</h2><p class="muted">Садитесь рядом. В каждом вопросе у каждого своя строка с именем: отвечайте за себя. Спорить можно и нужно 😄</p><button class="btn" id="go">Поехали</button></div>';
   } else if(S.step==='joint'){
     var j=JOINT[S.i];
     h=topbar('Вместе','both')+'<div class="card">'+jointhtml(j)+navrow(S.i>0)+'</div>';
   } else if(S.step==='hand'){
     h='<div class="card center">'+CATS+'<h2>'+(S.who==='A'?'Часть 2. Тайно<br>Отвечает '+esc(nm('A')):'Передай телефон: '+esc(nm('B')))+'</h2>'+
-      '<p class="muted">'+(S.who==='A'?esc(nm('B'))+', отвернись 🙈 Тут отвечаешь за себя и угадываешь, что ответит партнёр.':'Ответы '+esc(nm('A'))+' спрятаны. '+esc(nm('B'))+', теперь твоя очередь, и тоже без подглядываний.')+'</p>'+
+      '<p class="muted">'+(S.who==='A'?esc(nm('B'))+', отвернись 🙈 Тут отвечаешь за себя и угадываешь, что ответит партнёр.':esc(nm('A'))+' уже ответил(а), ответы спрятаны. '+esc(nm('B'))+', теперь твоя очередь, и тоже без подглядываний.')+'</p>'+
       '<button class="btn" id="go">'+(S.who==='A'?'Я '+esc(nm('A'))+', начинаю':'Я '+esc(nm('B'))+', начинаю')+'</button></div>';
   } else if(S.step==='q'){
     var q=Q[S.i];
@@ -443,17 +443,18 @@ function jointhtml(j){
   return h+'</div>';
 }
 
+function whoWord(q,v){return v<=3?'чаще я':(v>=7?'чаще '+nm(other(S.who)):'поровну')}
 function qhtml(q,v){
   var h='<h2>'+sub(q.text)+'</h2>'+(q.hint?'<p class="muted small">'+sub(q.hint)+'</p>':'');
   if(q.type==='choice'||q.type==='multi'){
     h+='<div class="opts">'+q.opts.map(function(o,k){var on=q.type==='multi'?(v||[]).indexOf(k)>=0:v===k;return '<button class="opt" data-k="'+k+'" aria-pressed="'+on+'">'+sub(o)+'</button>'}).join('')+'</div>';
   } else if(q.type==='guess'){
     v=v||{};
-    h+='<p class="sub">Ты сам(а)</p><div class="opts" data-part="me">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.me===k)+'">'+sub(o)+'</button>'}).join('')+'</div>'+
-       '<p class="sub">А что выберет '+esc(nm(other(S.who)))+'?</p><div class="opts" data-part="guess">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.guess===k)+'">'+sub(o)+'</button>'}).join('')+'</div>';
+    h+='<p class="sub">Твой ответ</p><div class="opts" data-part="me">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.me===k)+'">'+sub(o)+'</button>'}).join('')+'</div>'+
+       '<p class="sub">Как, по-твоему, ответит '+esc(nm(other(S.who)))+'?</p><div class="opts" data-part="guess">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.guess===k)+'">'+sub(o)+'</button>'}).join('')+'</div>';
   } else if(q.type==='slider'){
     var val=(v==null)?Math.round((q.min+q.max)/2):v;
-    h+='<div class="range"><div class="val" id="sv">'+val+'</div><input type="range" id="sl" min="'+q.min+'" max="'+q.max+'" step="1" value="'+val+'" aria-label="'+esc(q.text)+'"><div class="ends"><span>'+sub(q.left)+'</span><span>'+sub(q.right)+'</span></div></div>';
+    h+='<div class="range"><div class="val" id="sv">'+(q.who?esc(whoWord(q,val)):val)+'</div><input type="range" id="sl" min="'+q.min+'" max="'+q.max+'" step="1" value="'+val+'" aria-label="'+esc(q.text)+'"><div class="ends"><span>'+sub(q.left)+'</span><span>'+sub(q.right)+'</span></div></div>';
   } else if(q.type==='open'){
     h+='<textarea id="ta" maxlength="400" placeholder="'+esc(sub(q.ph||'Напиши как есть'))+'">'+esc(v||'')+'</textarea>';
   }
@@ -523,16 +524,16 @@ function reveal(){
     var a=A[q.id]||{}, b=B[q.id]||{};
     var aHit=a.guess===b.me, bHit=b.guess===a.me;
     if(aHit)res.aHits++; if(bHit)res.bHits++;
-    if(a.me===b.me&&aHit&&bHit) res.facts.push({w:1,t:'Вы оба выбрали '+q.short[a.me]+' и оба это угадали 🤝'});
+    if(a.me===b.me&&aHit&&bHit) res.facts.push({w:1,t:'Вы оба ответили «'+q.short[a.me]+'» и угадали друг друга 🤝'});
     else{
-      if(!aHit) res.facts.push({w:2,t:nm('A')+' думал(а), что '+nm('B')+' выберет '+q.short[a.guess]+', а там '+q.short[b.me]+' 😅'});
-      if(!bHit) res.facts.push({w:2,t:nm('B')+' думал(а), что '+nm('A')+' выберет '+q.short[b.guess]+', а там '+q.short[a.me]+' 😅'});
+      if(!aHit) res.facts.push({w:2,t:nm('A')+' думал(а), что '+nm('B')+' выберет «'+q.short[a.guess]+'», а выбор — «'+q.short[b.me]+'» 😅'});
+      if(!bHit) res.facts.push({w:2,t:nm('B')+' думал(а), что '+nm('A')+' выберет «'+q.short[b.guess]+'», а выбор — «'+q.short[a.me]+'» 😅'});
     }
   });
   function who(q){var a=A[q.id],b=B[q.id]; if(a==null||b==null)return null;
-    var aSaysB=a>=6, aSaysA=a<=4, bSaysA=b>=6, bSaysB=b<=4;
-    if(aSaysB&&bSaysB)return 'Вы оба считаете, что тут главный(ая) — '+nm('B');
-    if(aSaysA&&bSaysA)return 'Вы оба считаете, что тут главный(ая) — '+nm('A');
+    var aSaysB=a>=6, aSaysA=a<=4, bSaysA=b>=6, bSaysB=b<=4, act=q.id==='q4'?'первым мирится':'больше занимается домом';
+    if(aSaysB&&bSaysB)return 'Вы оба считаете, что '+act+' '+nm('B');
+    if(aSaysA&&bSaysA)return 'Вы оба считаете, что '+act+' '+nm('A');
     if(aSaysA&&bSaysB)return 'Каждый уверен, что это он(а) 😄 Пора выяснить правду';
     if(aSaysB&&bSaysA)return 'Каждый скромно считает, что это партнёр 🥰';
     return 'Похоже, у вас поровну';
@@ -547,10 +548,10 @@ function reveal(){
 function revealhtml(){
   var r=reveal();
   var facts=r.facts.sort(function(x,y){return y.w-x.w}).slice(0,4);
-  var h='<h2>Насколько вы знаете друг друга</h2><div class="score"><div class="a"><b>'+r.aHits+' из '+r.n+'</b><span class="small">'+esc(nm('A'))+' угадал(а) '+esc(nm('B'))+'</span></div><div class="b"><b>'+r.bHits+' из '+r.n+'</b><span class="small">'+esc(nm('B'))+' угадал(а) '+esc(nm('A'))+'</span></div></div>';
+  var h='<h2>Насколько вы знаете друг друга</h2><div class="score"><div class="a"><b>'+r.aHits+' из '+r.n+'</b><span class="small">'+esc(nm('A'))+' угадывает партнёра</span></div><div class="b"><b>'+r.bHits+' из '+r.n+'</b><span class="small">'+esc(nm('B'))+' угадывает партнёра</span></div></div>';
   facts.forEach(function(f){h+='<div class="fact">'+esc(f.t)+'</div>'});
-  if(r.mir)h+='<div class="fact"><b>Кто первым мирится?</b> '+esc(r.mir)+'</div>';
-  if(r.byt)h+='<div class="fact"><b>Кто главный по быту?</b> '+esc(r.byt)+'</div>';
+  if(r.mir)h+='<div class="fact"><b>Кто первым идёт мириться?</b> '+esc(r.mir)+'</div>';
+  if(r.byt)h+='<div class="fact"><b>Кто больше занимается домом?</b> '+esc(r.byt)+'</div>';
   h+='<div class="fact"><b>Норм или стрём:</b> совпали в '+r.ns.same+' из '+r.ns.n+(r.ns.diff.length?'. Спорили про: '+esc(r.ns.diff.slice(0,2).join('; ').toLowerCase()):'')+'</div>';
   return h;
 }
@@ -608,7 +609,7 @@ function bind(){
     [].forEach.call(app.querySelectorAll('.opts'),function(g){var part=g.dataset.part;[].forEach.call(g.querySelectorAll('.opt'),function(b){b.onclick=function(){var v=st[q.id]||{};v[part]=+b.dataset.k;st[q.id]=v;[].forEach.call(g.querySelectorAll('.opt'),function(x){x.setAttribute('aria-pressed',+x.dataset.k===v[part])});check()}})});
   } else if(q.type==='slider'){
     var sl=document.getElementById('sl'),sv=document.getElementById('sv'); if(st[q.id]==null)st[q.id]=+sl.value;
-    sl.oninput=function(){st[q.id]=+sl.value;sv.textContent=sl.value};
+    sl.oninput=function(){st[q.id]=+sl.value;sv.textContent=q.who?whoWord(q,+sl.value):sl.value};
   } else if(q.type==='open'){
     var ta=document.getElementById('ta');ta.oninput=function(){st[q.id]=ta.value};
   }
@@ -665,6 +666,7 @@ function payload(){
   return L.join('\n');
 }
 /* ===== РАЗБОР ПАРЫ (по правилам; в продукте заменим на ИИ и настоящие иллюстрации) ===== */
+function plural(n,a,b,c){var m=n%100,k=n%10;if(m>=11&&m<=14)return c;if(k===1)return a;if(k>=2&&k<=4)return b;return c}
 function daysTogether(){ if(!S.since)return null; var p=S.since.split('-'); var d=new Date(+p[0],+p[1]-1,1); var n=Math.floor((Date.now()-d.getTime())/864e5); return n>0?n:null }
 /* Котики под настроение раздела: happy — обнимаются, ok — сидят рядом, grumpy — надулись под тучкой */
 function catMood(m){
@@ -707,14 +709,14 @@ function battlehtml(A,B,r,nsJ){
   var rows=[
     ['😈','Главный контролёр',tyr,'Демократия'],
     ['🙃','Главный газлайтер («это я всегда мирюсь первым»)',gas,'Не выявлен'],
-    ['🧹','Главный по быту',who('q10'),'Поровну'],
+    ['🧹','Больше занимается домом',who('q10'),'Поровну'],
     ['🔮','Лучше читает партнёра',know,'Ничья'],
     ['🙏','Кому не хватает «спасибо»',thanks,'Обоим поровну']
   ];
   var h='<div class="battle"><h3>Баттл пары</h3>';
   rows.forEach(function(x){h+='<div class="brow"><span class="e">'+x[0]+'</span><span>'+x[1]+'</span>'+badge(x[2],x[3])+'</div>'});
   h+='<div class="brow"><span class="e">🚩</span><span>Ред-флаг вашей пары</span><span class="n t">'+(flags.length?esc(flags[0].charAt(0).toUpperCase()+flags[0].slice(1)):'Не нашли 🟢')+'</span></div>';
-  if(tyr) h+='<p class="bnote">Официально: главный контролёр — '+esc(tyr==='A'?na:nb)+' 😈 «Стрём» на: '+esc((tyr==='A'?stA:stB).slice(0,3).join(', '))+'.<br>'+esc(tyr==='A'?nb:na)+' теперь может предъявлять этот документ 📜</p>';
+  if(tyr) h+='<p class="bnote">Официально: главный контролёр — '+esc(tyr==='A'?na:nb)+' 😈 Сказал(а) «стрём» про: '+esc((tyr==='A'?stA:stB).slice(0,3).join(', '))+'.<br>'+esc(tyr==='A'?nb:na)+' теперь может предъявлять этот документ 📜</p>';
   if(gas==='AB') h+='<p class="bnote">Каждый уверен, что первым мирится именно он(а). Кто-то из вас газлайтит 🙃</p>';
   return h+'<p class="bnote">Это шутка по вашим ответам, а не диагноз 😄</p></div>';
 }
@@ -731,10 +733,10 @@ function reporthtml(){
   if(hits>=tot*0.7) arch={t:'Читаете мысли',d:'Угадали друг друга в '+hits+' из '+tot+'. Обычно пары угадывают около половины.'};
   else if(cA>=8&&cB>=8&&apA>=7&&apB>=7) arch={t:'Крепкий тыл',d:'Вы уверены друг в друге и чувствуете, что вас ценят. Это главное, по большим исследованиям пар.'};
   else if(sim>=simTot*0.75) arch={t:'Два сапога пара',d:'Совпали в '+sim+' из '+simTot+' ответов «вместе». Похожие привычки экономят кучу нервов.'};
-  else if(sim<=simTot*0.4) arch={t:'Огонь и лёд',d:'Совпали только в '+sim+' из '+simTot+'. Скучно вам точно не бывает.'};
+  else if(sim<=simTot*0.4) arch={t:'Огонь и лёд',d:(sim===0?'Вы не совпали ни в одном из '+simTot+' ответов «вместе».':'Совпали только в '+sim+' из '+simTot+' ответов «вместе».')+' Скучно вам точно не бывает.'};
   else arch={t:'Уютная парочка',d:'Где-то совпадаете, где-то спорите, но без драмы. Самый жизнеспособный вариант.'};
   var days=daysTogether();
-  var h='<div class="arch"><div class="scene-wrap">'+CATART.hero()+'</div><div class="lbl">Ваша пара</div><h2>'+esc(arch.t)+'</h2>'+(days?'<div class="days">Вместе '+days.toLocaleString('ru-RU')+' дней</div>':'')+'<p>'+esc(arch.d)+'</p></div>';
+  var h='<div class="arch"><div class="scene-wrap">'+CATART.hero()+'</div><div class="lbl">Ваша пара</div><h2>'+esc(arch.t)+'</h2>'+(days?'<div class="days">Вместе '+days.toLocaleString('ru-RU')+' '+plural(days,'день','дня','дней')+'</div>':'')+'<p>'+esc(arch.d)+'</p></div>';
   h+=battlehtml(A,B,r,nsJ);
   function sec(title,mood,big,line,tip,extra,sc,sci){
     var scene=sc||(mood==='happy'?'cuddle':(mood==='ok'?'window':'backs'));
@@ -756,33 +758,33 @@ function reporthtml(){
   h+=sec('Ссоры и примирение',m2, null,
     c3a===c3b?esc('После ссоры вам обоим нужно одно: '+sh('q3',c3a)+'. Не придётся спорить, как мириться.'):(pw?esc('У вас классическая схема ')+'<b>«догоняющий — отстраняющийся»</b>'+esc(': '+(c3a===0?na:nb)+' хочет обсудить сразу, '+(c3a===0?nb:na)+' — сначала остыть. Чем сильнее один догоняет, тем дальше уходит второй.'):esc(na+': '+sh('q3',c3a)+'. '+nb+': '+sh('q3',c3b)+'.')),
     'Договоритесь о слове «пауза»: 20 минут остываете и обязательно возвращаетесь к разговору.',
-    r.mir?'<p class="small muted">Кто первым мирится: '+esc(lc1(r.mir))+'</p>':'', m2==='happy'?'makeup':null,
+    r.mir?'<p class="small muted">'+esc(r.mir)+'.</p>':'', m2==='happy'?'makeup':null,
     pw?['Психологи называют эту схему «требование — отстранение». Она одна из самых частых в парах и сама по себе не значит, что отношения плохие. Важно, чтобы оба её замечали.','Christensen & Heavey, 1990; John Gottman, исследования конфликтов в парах']:['Конфликт — один из пяти главных признаков, по которым большое исследование пар предсказывало удовлетворённость отношениями. Важно не отсутствие ссор, а то, как вы из них выходите.','Joel et al., 2020, журнал PNAS (43 исследования, 11 196 пар)']);
   /* 3. Поддержка */
   var m3=(apA>=7&&apB>=7)?'happy':(Math.min(apA,apB)<=4?'grumpy':'ok');
-  h+=sec('Поддержка',m3, 'Замечают старания: '+na+' '+apA+'/10 · '+nb+' '+apB+'/10',
+  h+=sec('Поддержка',m3, 'Партнёр замечает мои старания: '+na+' '+apA+'/10 · '+nb+' '+apB+'/10',
     esc('На хорошие новости '+na+' ждёт от партнёра '+sh('q5',(A.q5||{}).me)+', а '+nb+' — '+sh('q5',(B.q5||{}).me)+'.'),
     'Раз в день одно конкретное «спасибо»: не «за всё», а «что забрал(а) посылку».', null, null,
     ['В исследовании 11 000 пар ощущение, что партнёр тебя ценит, оказалось одним из самых сильных признаков счастливых отношений. А то, как партнёр радуется вашим хорошим новостям, по другим исследованиям, значит для пары даже больше, чем поддержка в плохие дни.','Joel et al., 2020, PNAS; Gable et al., 2006']);
   /* 4. Близость */
   var dist=[0,1].filter(function(n){return nsA[n]!==nsB[n]});
   var m4=(cA>=8&&cB>=8)?'happy':((Math.abs(cA-cB)>=3||Math.min(cA,cB)<=4)?'grumpy':'ok');
-  h+=sec('Надёжность',m4, 'Уверены друг в друге: '+na+' '+cA+'/10 · '+nb+' '+cB+'/10',
-    esc(dist.length?'Разошлись во мнениях: «'+dist.map(function(n){return nsJ.items[n].toLowerCase()}).join('», «')+'».':'В вопросах личного пространства вы совпали.'),
+  h+=sec('Надёжность',m4, 'Уверены в поддержке партнёра: '+na+' '+cA+'/10 · '+nb+' '+cB+'/10',
+    esc(dist.length?'В «норм или стрём» вы разошлись в пунктах про личное пространство: «'+dist.map(function(n){return nsJ.items[n].toLowerCase()}).join('», «')+'».':'В вопросах личного пространства вы совпали.'),
     dist.length?'Обсудите, что для вас норм, и договоритесь. Тут нет правильного ответа, есть ваш.':null, null, null,
     ['Уверенность, что партнёр с вами всерьёз и надолго, — самый сильный признак удовлетворённости отношениями в большом исследовании пар. Сильнее любых черт характера.','Joel et al., 2020, журнал PNAS (43 исследования, 11 196 пар)']);
   /* 5. Деньги */
   var m9a=(A.q9||{}).me, m9b=(B.q9||{}).me;
   h+=sec('Деньги',m9a===m9b?'happy':'ok', null,
-    esc(m9a===m9b?'С внезапными 100 000 ₽ вы оба выбрали одно: '+sh('q9',m9a)+'.':na+' выбирает '+sh('q9',m9a)+', '+nb+' — '+sh('q9',m9b)+'. Разные суперсилы: один умеет радоваться, другой — беречь.'),
+    esc(m9a===m9b?'С неожиданными 100 000 ₽ вы оба выбрали одно: «'+sh('q9',m9a)+'».':na+' выбрал(а) «'+sh('q9',m9a)+'», '+nb+' — «'+sh('q9',m9b)+'». Разные суперсилы: один умеет радоваться, другой — беречь.'),
     'Заведите общую «копилку на мечту» и решите вдвоём, на что она.', null, m9a===m9b?'suitcase':null,
     ['Споры о деньгах сильнее других тем ссор связаны с риском расставания — так показало исследование тысяч семейных пар. Поэтому договориться о деньгах заранее — одна из лучших инвестиций в отношения.','Dew, Britt & Huston, 2012, журнал Family Relations']);
   /* 6. Быт */
   var bd=[2,3,4].filter(function(n){return nsA[n]!==nsB[n]});
   h+=sec('Быт',bd.length===0?'happy':(bd.length>=2?'grumpy':'ok'), null,
-    esc(bd.length?'Спорные пункты: «'+bd.map(function(n){return nsJ.items[n].toLowerCase()}).join('», «')+'».':'По носкам, посуде и покупкам вы совпали. Редкая удача!'),
+    esc(bd.length?'В «норм или стрём» вы разошлись в бытовых пунктах: «'+bd.map(function(n){return nsJ.items[n].toLowerCase()}).join('», «')+'».':'По носкам, посуде и покупкам вы совпали. Редкая удача!'),
     'Распишите вдвоём 5 главных домашних дел и поделите их. Так спорить приходится о фактах, а не об ощущениях.',
-    r.byt?'<p class="small muted">Главный по быту: '+esc(lc1(r.byt))+'</p>':'', null,
+    r.byt?'<p class="small muted">'+esc(r.byt)+'.</p>':'', null,
     ['Когда партнёров просят оценить свой вклад в домашние дела, в сумме почти всегда выходит больше 100%. Это не враньё: свои дела мы замечаем лучше, чем чужие.','Ross & Sicoly, 1979, классическое исследование пар']);
   /* 7. Планы */
   var quotes=((A.q13||'').trim()?'<div class="quote">'+esc(na)+': «'+esc(A.q13.trim())+'»</div>':'')+((B.q13||'').trim()?'<div class="quote b">'+esc(nb)+': «'+esc(B.q13.trim())+'»</div>':'');
