@@ -124,6 +124,14 @@ pre.out{white-space:pre-wrap;word-break:break-word;font-size:.8rem;background:#f
 .tip b{color:var(--b)}
 .quote{font-size:.95rem;padding:10px 12px;border-left:3px solid var(--a);background:#fff;border-radius:0 12px 12px 0}
 .quote.b{border-left-color:var(--b)}
+.battle{display:grid;gap:8px;padding:16px;border-radius:22px;background:#fff7f1;border:1.5px solid var(--a-line)}
+.battle h3{font-family:var(--font-display);font-size:1.05rem;margin:0 0 4px;font-weight:500}
+.brow{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.brow:last-child{border-bottom:0}
+.brow .e{font-size:1.3rem}
+.brow .n{font-weight:800;padding:4px 10px;border-radius:999px;font-size:.88rem;white-space:nowrap}
+.brow .n.a{background:var(--a-soft);color:var(--a)}.brow .n.b{background:var(--b-soft);color:var(--b)}.brow .n.t{background:#f1f0f6;color:var(--muted)}
+.bnote{font-size:.85rem;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 </style>
 
@@ -623,6 +631,31 @@ function catMood(m){
 }
 function lc1(t){return t.charAt(0).toLowerCase()+t.slice(1)}
 var CHIP={happy:'Совпали 🎉',ok:'По-разному, но ок',grumpy:'Есть о чём поговорить'};
+
+/* Баттл пары: шуточные номинации по ответам обоих */
+function battlehtml(A,B,r,nsJ){
+  var na=nm('A'), nb=nm('B');
+  function badge(w,t){return w==='A'?'<span class="n a">'+esc(na)+'</span>':(w==='B'?'<span class="n b">'+esc(nb)+'</span>':'<span class="n t">'+esc(t||'Ничья')+'</span>')}
+  /* кто чаще считается тем, кто делает X: a — ответ A (0=я,10=B), b — ответ B (0=я,10=A) */
+  function who(id){var a=A[id],b=B[id]; if(a==null||b==null)return null; var sa=(10-a)+b; return sa>=12?'A':(sa<=8?'B':null)}
+  var nsA=A[nsJ.id]||{}, nsB=B[nsJ.id]||{}, strictA=0, strictB=0;
+  nsJ.items.forEach(function(_,n){ if(nsA[n]===0)strictA++; if(nsB[n]===0)strictB++; });
+  var tyr=strictA>strictB?'A':(strictB>strictA?'B':null);
+  var know=r.aHits>r.bHits?'A':(r.bHits>r.aHits?'B':null);
+  var apA=A.q6==null?5:A.q6, apB=B.q6==null?5:B.q6, thanks=apA<apB?'A':(apB<apA?'B':null);
+  var rows=[
+    ['😈','Главный тиран',tyr,'Демократия'],
+    ['🕊','Первым идёт мириться',who('q4'),'Поровну'],
+    ['🧹','Главный по быту',who('q10'),'Поровну'],
+    ['🔮','Лучше знает партнёра',know,'Ничья'],
+    ['🙏','Кому нужно больше «спасибо»',thanks,'Обоим поровну']
+  ];
+  var h='<div class="battle"><h3>Баттл пары</h3>';
+  rows.forEach(function(x){h+='<div class="brow"><span class="e">'+x[0]+'</span><span>'+x[1]+'</span>'+badge(x[2],x[3])+'</div>'});
+  if(tyr) h+='<p class="bnote">Официально: главный тиран в паре — '+esc(tyr==='A'?na:nb)+' 😈<br>'+esc(tyr==='A'?nb:na)+' теперь может предъявлять этот документ 📜</p>';
+  else h+='<p class="bnote">Тирана не выявлено: правила в доме вы устанавливаете вместе 🤝</p>';
+  return h+'<p class="bnote">Это шутка по вашим ответам, а не диагноз 😄</p></div>';
+}
 function reporthtml(){
   var A=S.ans.A, B=S.ans.B, r=reveal(), na=nm('A'), nb=nm('B');
   var hits=r.aHits+r.bHits, tot=r.n*2;
@@ -640,6 +673,7 @@ function reporthtml(){
   else arch={t:'Уютная парочка',d:'Где-то совпадаете, где-то спорите, но без драмы. Самый жизнеспособный вариант.'};
   var days=daysTogether();
   var h='<div class="arch"><div class="scene-wrap">'+CATART.hero()+'</div><div class="lbl">Ваша пара</div><h2>'+esc(arch.t)+'</h2>'+(days?'<div class="days">Вместе '+days.toLocaleString('ru-RU')+' дней</div>':'')+'<p>'+esc(arch.d)+'</p></div>';
+  h+=battlehtml(A,B,r,nsJ);
   function sec(title,mood,big,line,tip,extra,sc){
     var scene=sc||(mood==='happy'?'cuddle':(mood==='ok'?'window':'backs'));
     return '<div class="sec"><div class="secimg">'+CATART[scene]()+'</div><div class="sechead"><h3>'+title+'</h3><span class="chip '+mood+'">'+CHIP[mood]+'</span></div>'+
