@@ -637,8 +637,8 @@ function battlehtml(A,B,r,nsJ){
   var na=nm('A'), nb=nm('B');
   function badge(w,t){return w==='A'?'<span class="n a">'+esc(na)+'</span>':(w==='B'?'<span class="n b">'+esc(nb)+'</span>':(w==='AB'?'<span class="n t">Оба 🙃</span>':'<span class="n t">'+esc(t||'Ничья')+'</span>'))}
   function who(id){var a=A[id],b=B[id]; if(a==null||b==null)return null; var sa=(10-a)+b; return sa>=12?'A':(sa<=8?'B':null)}
-  var nsA=A[nsJ.id]||{}, nsB=B[nsJ.id]||{}, strictA=0, strictB=0, flags=[];
-  nsJ.items.forEach(function(t,n){ if(nsA[n]===0)strictA++; if(nsB[n]===0)strictB++; if(nsA[n]!=null&&nsB[n]!=null&&nsA[n]!==nsB[n])flags.push(t); });
+  var nsA=A[nsJ.id]||{}, nsB=B[nsJ.id]||{}, strictA=0, strictB=0, flags=[], stA=[], stB=[];
+  nsJ.items.forEach(function(t,n){ if(nsA[n]===0){strictA++;stA.push(t.toLowerCase())} if(nsB[n]===0){strictB++;stB.push(t.toLowerCase())} if(nsA[n]!=null&&nsB[n]!=null&&nsA[n]!==nsB[n])flags.push(t); });
   var tyr=strictA>strictB?'A':(strictB>strictA?'B':null);
   /* газлайтер: каждый считает, что мирится первым именно он */
   var a4=A.q4, b4=B.q4, gas=null;
@@ -647,7 +647,7 @@ function battlehtml(A,B,r,nsJ){
   var know=r.aHits>r.bHits?'A':(r.bHits>r.aHits?'B':null);
   var apA=A.q6==null?5:A.q6, apB=B.q6==null?5:B.q6, thanks=apA<apB?'A':(apB<apA?'B':null);
   var rows=[
-    ['😈','Абьюзер пульта и холодильника',tyr,'Демократия'],
+    ['😈','Главный контролёр',tyr,'Демократия'],
     ['🙃','Главный газлайтер («это я всегда мирюсь первым»)',gas,'Не выявлен'],
     ['🧹','Главный по быту',who('q10'),'Поровну'],
     ['🔮','Лучше читает партнёра',know,'Ничья'],
@@ -656,7 +656,7 @@ function battlehtml(A,B,r,nsJ){
   var h='<div class="battle"><h3>Баттл пары</h3>';
   rows.forEach(function(x){h+='<div class="brow"><span class="e">'+x[0]+'</span><span>'+x[1]+'</span>'+badge(x[2],x[3])+'</div>'});
   h+='<div class="brow"><span class="e">🚩</span><span>Ред-флаг вашей пары</span><span class="n t">'+(flags.length?esc(flags[0].charAt(0).toUpperCase()+flags[0].slice(1)):'Не нашли 🟢')+'</span></div>';
-  if(tyr) h+='<p class="bnote">Официально: абьюзер пульта — '+esc(tyr==='A'?na:nb)+' 😈<br>'+esc(tyr==='A'?nb:na)+' теперь может предъявлять этот документ 📜</p>';
+  if(tyr) h+='<p class="bnote">Официально: главный контролёр — '+esc(tyr==='A'?na:nb)+' 😈 «Стрём» на: '+esc((tyr==='A'?stA:stB).slice(0,3).join(', '))+'.<br>'+esc(tyr==='A'?nb:na)+' теперь может предъявлять этот документ 📜</p>';
   if(gas==='AB') h+='<p class="bnote">Каждый уверен, что первым мирится именно он(а). Кто-то из вас газлайтит 🙃</p>';
   return h+'<p class="bnote">Это шутка по вашим ответам, а не диагноз 😄</p></div>';
 }
