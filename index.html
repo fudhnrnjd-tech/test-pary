@@ -94,6 +94,11 @@ pre.out{white-space:pre-wrap;word-break:break-word;font-size:.8rem;background:#f
 .score .a b{color:var(--a)}.score .b b{color:var(--b)}
 .fact{padding:12px 14px;border-radius:16px;background:#f7f6fb;font-size:.95rem}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field input.dt{font:inherit;border:0;background:#fff;border-radius:10px;padding:8px;color:var(--ink);width:100%}
+.sug{display:grid;gap:4px}
+.sug:empty{display:none}
+.sug button{text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:inherit;font-size:.95rem;color:var(--ink);cursor:pointer}
+.sug small{color:var(--muted)}
 .two input{min-width:0}
 select{font:inherit;font-size:1rem;border:0;background:transparent;color:var(--ink);padding:4px 0;width:100%}
 input[type=date],input[type=time]{font:inherit;border:0;background:#fff;border-radius:10px;padding:8px;color:var(--ink);width:100%}
@@ -433,12 +438,60 @@ function render(){
   app.innerHTML=h; bind(); window.scrollTo(0,0);
 }
 
+function dateIso(id){
+  var el=document.getElementById(id), g=el.value.replace(/\D/g,'').slice(0,8);
+  var f=g.slice(0,2)+(g.length>2?'.'+g.slice(2,4):'')+(g.length>4?'.'+g.slice(4):'');
+  if(el.value!==f)el.value=f;
+  if(g.length<8)return '';
+  var dd=+g.slice(0,2), mm=+g.slice(2,4), yy=+g.slice(4);
+  if(dd<1||dd>31||mm<1||mm>12||yy<1920||yy>new Date().getFullYear())return '';
+  return g.slice(4)+'-'+g.slice(2,4)+'-'+g.slice(0,2);
+}
+function citySuggest(ids,upd){
+  ids.forEach(function(id){
+    var el=document.getElementById(id), box=document.getElementById('sg_'+id), timer=null, seq=0;
+    if(!el||!box)return;
+    el.addEventListener('focus',function(){setTimeout(function(){el.scrollIntoView({block:'center',behavior:'smooth'})},350)});
+    var pick=function(c){GEO[cityKey(c[0])]=c;el.value=c[0];box.innerHTML='';upd();};
+    var show=function(list){
+      box.innerHTML='';
+      list.slice(0,6).forEach(function(c){var b=document.createElement('button');b.type='button';
+        b.innerHTML=esc(c[0].split(', ')[0])+(c[0].indexOf(', ')>0?' <small>'+esc(c[0].split(', ').slice(1).join(', '))+'</small>':'');
+        b.onclick=function(){pick(c)};box.appendChild(b)});
+      var q=el.value.trim();
+      if(q.length>=3&&!list.some(function(c){return cityKey(c[0].split(', ')[0])===cityKey(q)})){
+        var f=document.createElement('button');f.type='button';f.textContent='🔎 Найти «'+q+'»';
+        f.onclick=function(){f.disabled=true;f.textContent='Ищем…';geocode(q).then(function(c){
+          if(c){pick(c)}else{f.disabled=false;f.textContent='Не нашли «'+q+'». Попробуйте ближайший город'}})};
+        box.appendChild(f);
+      }
+    };
+    el.addEventListener('input',function(){
+      var k=cityKey(el.value), my=++seq; clearTimeout(timer);
+      if(k.length<2||cityFind(el.value)&&cityKey(cityFind(el.value)[0])===k){box.innerHTML='';return}
+      var loc=CITIES.filter(function(c){return cityKey(c[0]).indexOf(k)===0});
+      show(loc);
+      if(k.length<3||loc.length>=6)return;
+      timer=setTimeout(function(){
+        fetch('https://photon.komoot.io/api/?limit=8&lang=default&q='+encodeURIComponent(el.value.trim())).then(function(r){return r.json()}).then(function(d){
+          if(my!==seq)return;
+          var seen={}, ext=(d.features||[]).filter(function(f){var pr=f.properties||{};return pr.osm_key==='place'&&/city|town|village|hamlet|locality|municipality/.test(pr.osm_value||'')})
+            .map(function(f){var pr=f.properties, lon=f.geometry.coordinates[0], lat=f.geometry.coordinates[1];
+              return [[pr.name,pr.state,pr.country].filter(Boolean).join(', '),lat,lon,Math.round(lon/15)]})
+            .filter(function(c){var key=cityKey(c[0]);if(seen[key])return false;seen[key]=1;return !loc.some(function(l){return cityKey(l[0])===key})});
+          show(loc.concat(ext));
+        }).catch(function(){});
+      },400);
+    });
+  });
+}
 function solarfields(w){
   var d=S.solar[w]||{};
   return '<div class="field'+(w==='B'?' b':'')+'" style="gap:8px"><label>'+esc(nm(w))+'</label>'+
-    '<label for="bd'+w+'">Дата и время рождения</label><div class="two"><input type="date" id="bd'+w+'" value="'+esc(d.date||'')+'" aria-label="Дата рождения '+esc(nm(w))+'"><input type="time" id="bt'+w+'" value="'+esc(d.time||'')+'" aria-label="Время рождения '+esc(nm(w))+'"></div>'+
-    '<label for="bc'+w+'">Город рождения</label><input type="text" id="bc'+w+'" list="cityList" autocomplete="off" placeholder="Начните вводить город" value="'+esc(d.city||'')+'">'+
-    '<label for="bn'+w+'">Где живёте сейчас</label><input type="text" id="bn'+w+'" list="cityList" autocomplete="off" placeholder="Начните вводить город" value="'+esc(d.now||'')+'"></div>';
+    '<label for="bd'+w+'">Дата и время рождения</label><div class="two"><input type="text" class="dt" inputmode="numeric" maxlength="10" placeholder="ДД.ММ.ГГГГ" autocomplete="off" id="bd'+w+'" value="'+esc(d.date?d.date.split('-').reverse().join('.'):'')+'" aria-label="Дата рождения '+esc(nm(w))+'"><input type="time" id="bt'+w+'" value="'+esc(d.time||'')+'" aria-label="Время рождения '+esc(nm(w))+'"></div>'+
+    '<label for="bc'+w+'">Город рождения</label><input type="text" id="bc'+w+'" autocomplete="off" placeholder="Начните вводить город" value="'+esc(d.city||'')+'"><div class="sug" id="sg_bc'+w+'"></div>'+
+    '<label for="bn'+w+'">Где живёте сейчас</label><input type="text" id="bn'+w+'" autocomplete="off" placeholder="Начните вводить город" value="'+esc(d.now||'')+'"><div class="sug" id="sg_bn'+w+'"></div>'+
+    '<p class="small muted">Нет вашего города в подсказках? Впишите как есть — найдём сами, даже маленький посёлок.</p></div>';
 }
 function jointhtml(j){
   var A=S.ans.A[j.id]||{}, B=S.ans.B[j.id]||{};
@@ -599,8 +652,8 @@ function bind(){
     return;
   }
   if(S.step==='solarform'){
-    var upd2=function(){['A','B'].forEach(function(w){S.solar[w]={date:document.getElementById('bd'+w).value,time:document.getElementById('bt'+w).value,city:document.getElementById('bc'+w).value,now:document.getElementById('bn'+w).value}});go.disabled=!(S.solar.A.date&&S.solar.B.date)};
-    ['A','B'].forEach(function(w){['bd','bt','bc','bn'].forEach(function(p){var el=document.getElementById(p+w);el.oninput=el.onchange=upd2})}); upd2();
+    var upd2=function(){['A','B'].forEach(function(w){S.solar[w]={date:dateIso('bd'+w),time:document.getElementById('bt'+w).value,city:document.getElementById('bc'+w).value,now:document.getElementById('bn'+w).value}});go.disabled=!(S.solar.A.date&&S.solar.B.date)};
+    ['A','B'].forEach(function(w){['bd','bt','bc','bn'].forEach(function(p){var el=document.getElementById(p+w);el.oninput=el.onchange=upd2})}); upd2(); citySuggest(['bcA','bnA','bcB','bnB'],upd2);
     go.onclick=function(){
       var err=document.getElementById('serr'), names=[];
       ['A','B'].forEach(function(w){ if(!S.solar[w].city)S.solar[w].city='Москва'; if(!S.solar[w].now)S.solar[w].now=S.solar[w].city; names.push(S.solar[w].city,S.solar[w].now); });
@@ -619,8 +672,8 @@ function bind(){
   if(S.step==='solores'){go.onclick=function(){S.a='';S.solar.A={};S.step='solo';render()};return}
   if(S.step==='solo'){
     var nmI=document.getElementById('soloName');
-    var upd3=function(){S.a=nmI.value.trim()||'Ваш соляр';S.solar.A={date:document.getElementById('bdA').value,time:document.getElementById('btA').value,city:document.getElementById('bcA').value,now:document.getElementById('bnA').value};go.disabled=!S.solar.A.date};
-    [nmI].concat(['bd','bt','bc','bn'].map(function(p){return document.getElementById(p+'A')})).forEach(function(el){el.oninput=el.onchange=upd3}); upd3();
+    var upd3=function(){S.a=nmI.value.trim()||'Ваш соляр';S.solar.A={date:dateIso('bdA'),time:document.getElementById('btA').value,city:document.getElementById('bcA').value,now:document.getElementById('bnA').value};go.disabled=!S.solar.A.date};
+    [nmI].concat(['bd','bt','bc','bn'].map(function(p){return document.getElementById(p+'A')})).forEach(function(el){el.oninput=el.onchange=upd3}); upd3(); citySuggest(['bcA','bnA'],upd3);
     go.onclick=function(){
       var err=document.getElementById('serr'); if(!S.solar.A.city)S.solar.A.city='Москва'; if(!S.solar.A.now)S.solar.A.now=S.solar.A.city;
       var names=[S.solar.A.city,S.solar.A.now].filter(function(n,i,a){return a.indexOf(n)===i&&!cityFind(n)});
