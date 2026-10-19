@@ -67,6 +67,10 @@ textarea{font:inherit;width:100%;padding:14px 16px;border-radius:18px;border:1.5
 .range{display:grid;gap:8px}
 .range input{width:100%;accent-color:var(--accent)}
 .range .ends{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);gap:12px}
+.scale{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:6px}
+.scale .opt{justify-content:center;padding:14px 0;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:.85rem;font-weight:600;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 12px;cursor:pointer}
 .range .val{font-family:var(--font-display);font-size:1.8rem;text-align:center;color:var(--accent)}
 .sub{font-size:.8rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .check{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:.86rem;cursor:pointer;color:var(--muted)}
@@ -303,9 +307,9 @@ var Q = [
   /* Быт и роли — восприятие вклада */
   {id:'q10', scale:'roles', type:'slider', who:true, text:'Кто у вас больше занимается домашними делами?', min:0, max:10, left:'чаще я', right:'чаще {P}'},
   /* Юмор — Hall 2017 */
-  {id:'q12', scale:'humor', type:'guess', text:'Над чем ты смеёшься до слёз?', opts:['Мемы','Стендап','Свои неудачи','Свои же шутки','Видео с котиками'], short:['мемы','стендап','свои неудачи','свои шутки','видео с котиками'], inst:['мемами','стендапом','своими неудачами','своими же шутками','видео с котиками']},
+  {id:'q12', scale:'humor', type:'guess', text:'Над чем ты смеёшься до слёз?', opts:['Мемы','Стендап','Свои неудачи','Свои же шутки','Видео с котиками','Шутки партнёра 😄'], short:['мемы','стендап','свои неудачи','свои шутки','видео с котиками','шутки партнёра'], inst:['мемами','стендапом','своими неудачами','своими же шутками','видео с котиками','шутками партнёра']},
   /* Планы — цитата в отчёт */
-  {id:'q13', scale:'plans', type:'open', text:'Что ты хочешь сделать вместе в этом году? Напиши одну вещь', ph:'Например: съездить на море без телефонов'}
+  {id:'q13', scale:'plans', type:'open', text:'Что ты хочешь сделать вместе в этом году? Напиши одну вещь', ph:'Например: съездить на море без телефонов', chips:[['Путешествие ✈️','Съездить вместе в '],['Новое хобби 🎨','Начать вместе '],['Спорт 🏃','Вместе заняться '],['Дом 🏠','Сделать дома '],['Накопить 💰','Накопить на '],['Свидания 🌹','Чаще ходить на свидания'],['Питомец 🐾','Завести питомца']]}
 ];
 var FEEDBACK = [
   {id:'f_acc', type:'slider', text:'Насколько разбор получился про вас?', min:1, max:5, left:'вообще не про нас', right:'прямо в точку'},
@@ -377,8 +381,14 @@ function progress(){ if(S.step==='joint')return S.i; if(S.step==='q')return JOIN
 function topbar(label,cls){return '<div class="top"><span class="who'+(cls?' '+cls:'')+'">'+label+'</span><div class="bar"><i style="width:'+(progress()/TOTAL*100)+'%"></i></div><span class="count">'+(progress()+1)+' / '+TOTAL+'</span></div>'}
 function navrow(canBack){return '<div class="row">'+(canBack?'<button class="btn ghost" id="back">Назад</button>':'')+'<button class="btn" id="next">Дальше</button></div>'}
 
+var SAVED=null;
+function saveState(){ if(S.step==='resume'||S.step==='intro'||S.fbOnly||S.demo)return; try{localStorage.setItem('tp_state',JSON.stringify(S))}catch(e){} }
 function render(){
-  var h='';
+  var h=''; saveState();
+  if(S.step==='resume'){
+    h='<div class="card center">'+CATS+'<h2>Продолжим?</h2><p class="muted">'+esc((SAVED.a||'')+(SAVED.b?' и '+SAVED.b:''))+', вы уже начали тест на этом телефоне. Можно продолжить с того же места.</p><button class="btn" id="go">Продолжить</button><button class="btn ghost" id="restart">Начать заново</button></div>';
+    app.innerHTML=h; bind(); window.scrollTo(0,0); return;
+  }
   if(S.step==='intro'){
     h='<div class="card"><div class="scene-wrap">'+CATART.hero()+'</div><div class="center" style="display:grid;gap:10px"><h1>Тест проходят <em>вдвоём</em> с одного телефона</h1><p class="muted">Сначала отвечаете вместе, потом каждый тайно, а в конце открываете ответы друг друга и получаете разбор пары. Минут 8–10. А в самом конце — бонус: соляр вашей пары на год ✨</p></div>'+
       '<div class="note">Ваши ответы никуда не отправляются: они остаются на этом телефоне, а разбор пары вы получите сразу в конце.</div>'+
@@ -425,11 +435,11 @@ function render(){
   } else if(S.step==='solores'){
     var rs=solarCalc(S.solar.A);
     h='<div class="card rep"><div class="scene-wrap">'+CATART.hero()+'</div>'+solarCard('A',rs)+
-      '<p class="small muted center">Соляр — развлекательный астрологический прогноз, рассчитан по положению планет в момент вашего дня рождения.</p>'+
+      '<p class="small muted center">Соляр — развлекательный астрологический прогноз, рассчитан по положению планет в момент вашего дня рождения. Луна и Венера здесь — из карты года, а не из натальной карты, поэтому могут отличаться от тех, что вы знаете.</p>'+
       '<button class="btn" id="go">Посчитать для другого человека</button></div>';
   } else if(S.step==='solarres'){
     var ra=solarCalc(S.solar.A), rb=solarCalc(S.solar.B);
-    h='<div class="card rep"><div class="scene-wrap">'+CATART.window()+'</div>'+solarCouple(ra,rb)+solarCard('A',ra)+solarCard('B',rb)+'<p class="small muted center">Соляр — развлекательный астрологический прогноз, рассчитан по положению планет в момент вашего дня рождения.</p><button class="btn" id="go">Дальше</button></div>';
+    h='<div class="card rep"><div class="scene-wrap">'+CATART.window()+'</div>'+solarCouple(ra,rb)+solarCard('A',ra)+solarCard('B',rb)+'<p class="small muted center">Соляр — развлекательный астрологический прогноз, рассчитан по положению планет в момент вашего дня рождения. Луна и Венера здесь — из карты года, а не из натальной карты, поэтому могут отличаться от тех, что вы знаете.</p><button class="btn" id="go">Дальше</button></div>';
   } else if(S.step==='fbintro'){
     h='<div class="card center">'+CATS+'<h2>Помогите сделать тест лучше</h2><p class="muted">'+(S.fbOnly?'Вы уже прошли тест вдвоём — спасибо! ':'')+'7 коротких вопросов про сам тест. Ваши ответы на тест мы не видим и не спрашиваем.</p><button class="btn" id="go">Ответить</button></div>';
   } else if(S.step==='fb'){
@@ -529,16 +539,23 @@ function qhtml(q,v){
     h+='<p class="sub">1. Про тебя: что выберешь ты?</p><div class="opts" data-part="me">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.me===k)+'">'+sub(o)+'</button>'}).join('')+'</div>'+
        '<p class="sub">2. Угадай: что выберет '+esc(nm(other(S.who)))+'?</p><p class="muted small" style="margin-top:-6px">'+esc(nm(other(S.who)))+' отвечает на этот же вопрос за себя. Попробуй угадать этот ответ</p><div class="opts" data-part="guess">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.guess===k)+'">'+sub(o)+'</button>'}).join('')+'</div>';
   } else if(q.type==='slider'){
-    var val=(v==null)?Math.round((q.min+q.max)/2):v;
-    h+='<div class="range"><div class="val" id="sv">'+(q.who?esc(whoWord(q,val)):val)+'</div><input type="range" id="sl" min="'+q.min+'" max="'+q.max+'" step="1" value="'+val+'" aria-label="'+esc(q.text)+'"><div class="ends"><span>'+sub(q.left)+'</span><span>'+sub(q.right)+'</span></div></div>';
+    /* Кнопки вместо ползунка: во встроенном браузере Telegram ползунок не тянется и сбрасывается */
+    if(q.who){
+      var W=[[0,'Чаще я'],[3,'Скорее я'],[5,'Поровну'],[7,'Скорее {P}'],[10,'Чаще {P}']];
+      h+='<div class="opts">'+W.map(function(x){return '<button class="opt" data-sv="'+x[0]+'" aria-pressed="'+(v===x[0])+'">'+sub(x[1])+'</button>'}).join('')+'</div>';
+    } else {
+      var n=q.max-q.min+1, vals=[]; for(var k=q.min;k<=q.max;k++)vals.push(k);
+      h+='<div class="range"><div class="scale" style="--n:'+(n>6?6:n)+'">'+vals.map(function(k){return '<button class="opt" data-sv="'+k+'" aria-pressed="'+(v===k)+'">'+k+'</button>'}).join('')+'</div>'+(q.hint?'':'<div class="ends"><span>'+q.min+' — '+sub(q.left)+'</span><span>'+q.max+' — '+sub(q.right)+'</span></div>')+'</div>';
+    }
   } else if(q.type==='open'){
     h+='<textarea id="ta" maxlength="400" placeholder="'+esc(sub(q.ph||'Напиши как есть'))+'">'+esc(v||'')+'</textarea>';
+    if(q.chips)h+='<p class="muted small">Не знаешь, что написать? Нажми на подсказку и допиши</p><div class="chips">'+q.chips.map(function(c,k){return '<button type="button" data-chip="'+k+'">'+esc(c[0])+'</button>'}).join('')+'</div>';
   }
   return h;
 }
 
 function done(q,v){
-  if(q.type==='open'||q.type==='slider')return true;
+  if(q.type==='open')return true;
   if(v==null)return false;
   if(q.type==='multi')return v.length>0;
   if(q.type==='guess')return v.me!=null&&v.guess!=null;
@@ -590,8 +607,8 @@ function solarCard(w,res){
     '<p class="small muted">Ваш солярный год начался '+esc(solarDate(res.start))+' ('+esc(res.city)+')'+(res.exact?'':', без точного времени рождения прогноз приблизительный')+'.</p>'+
     '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+esc(ASC_T[res.ascS])+'</p>'+
     '<div class="sci"><span class="t">☀️ Главная сфера года · '+res.house+' дом</span><p>'+esc(HOUSE_T[res.house-1].charAt(0).toUpperCase()+HOUSE_T[res.house-1].slice(1))+'.</p></div>'+
-    '<p class="small"><b>🌙 Эмоции:</b> Луна '+esc(SIGNS_IN[res.moonS])+' — '+esc(MOON_T[res.moonS])+'.</p>'+
-    '<p class="small"><b>💗 Любовь:</b> Венера '+esc(SIGNS_IN[res.venS])+' — '+esc(VENUS_T[res.venS])+'.</p></div>';
+    '<p class="small"><b>🌙 Эмоции:</b> Луна года '+esc(SIGNS_IN[res.moonS])+' — '+esc(MOON_T[res.moonS])+'.</p>'+
+    '<p class="small"><b>💗 Любовь:</b> Венера года '+esc(SIGNS_IN[res.venS])+' — '+esc(VENUS_T[res.venS])+'.</p></div>';
 }
 function solarCouple(a,b){
   var na=nm('A'), nb=nm('B'), lines=[];
@@ -644,6 +661,11 @@ function revealhtml(){
 
 function bind(){
   var go=document.getElementById('go');
+  if(S.step==='resume'){
+    go.onclick=function(){for(var k in SAVED)S[k]=SAVED[k];render()};
+    document.getElementById('restart').onclick=function(){try{localStorage.removeItem('tp_state')}catch(e){} S.step='intro';render()};
+    return;
+  }
   if(S.step==='intro'){
     var na=document.getElementById('na'),nb=document.getElementById('nb'),c1=document.getElementById('c1'),si=document.getElementById('since');
     var upd=function(){S.a=na.value.trim();S.b=nb.value.trim();S.since=si.value;go.disabled=!(S.a&&S.b&&c1.checked)};
@@ -721,10 +743,10 @@ function bind(){
   } else if(q.type==='guess'){
     [].forEach.call(app.querySelectorAll('.opts'),function(g){var part=g.dataset.part;[].forEach.call(g.querySelectorAll('.opt'),function(b){b.onclick=function(){var v=st[q.id]||{};v[part]=+b.dataset.k;st[q.id]=v;[].forEach.call(g.querySelectorAll('.opt'),function(x){x.setAttribute('aria-pressed',+x.dataset.k===v[part])});check()}})});
   } else if(q.type==='slider'){
-    var sl=document.getElementById('sl'),sv=document.getElementById('sv'); if(st[q.id]==null)st[q.id]=+sl.value;
-    sl.oninput=function(){st[q.id]=+sl.value;sv.textContent=q.who?whoWord(q,+sl.value):sl.value};
+    [].forEach.call(app.querySelectorAll('[data-sv]'),function(b){b.onclick=function(){st[q.id]=+b.dataset.sv;[].forEach.call(app.querySelectorAll('[data-sv]'),function(x){x.setAttribute('aria-pressed',x===b)});check()}});
   } else if(q.type==='open'){
     var ta=document.getElementById('ta');ta.oninput=function(){st[q.id]=ta.value};
+    [].forEach.call(app.querySelectorAll('[data-chip]'),function(b){b.onclick=function(){ta.value=q.chips[+b.dataset.chip][1];st[q.id]=ta.value;ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}});
   }
   check();
   next.onclick=function(){
@@ -771,7 +793,7 @@ function compact(){
   return L.join('\n');
 }
 function payload(){
-  var L=[S.fbOnly?'Оценка теста пары (отзыв по отдельной ссылке, тест проходили раньше)':'Оценка теста пары (фокус-группа v8)'];
+  var L=[S.fbOnly?'Оценка теста пары (отзыв по отдельной ссылке, тест проходили раньше)':'Оценка теста пары (фокус-группа v9)'];
   FEEDBACK.forEach(function(f){L.push('— '+f.text+' '+fmt(f,S.fb[f.id]))});
   if(S.fbOnly)return L.join('\n');
   var r=reveal();
@@ -890,7 +912,8 @@ var LIB={
     'Ценит острое слово и хорошую подачу.',
     'Это самоирония, одна из самых полезных черт в паре: кто умеет посмеяться над собой, быстрее гасит ссоры.',
     'Сам(а) себе генератор шуток. Таким людям очень важен благодарный зритель.',
-    'Мягкий, добрый юмор без колкостей.'
+    'Мягкий, добрый юмор без колкостей.',
+    'Лучший комплимент паре: юмор партнёра работает, и у него есть самый благодарный зритель.'
   ],
   miss:{ /* важные промахи в угадывании */
     q3:'не угадал(а), что нужно партнёру после ссоры. Это самая полезная ошибка в тесте: теперь понятно, как мириться правильно.',
@@ -1031,7 +1054,8 @@ function reporthtml(){
     ['Пары, которые вместе пробуют что-то новое и необычное, чувствуют себя в отношениях счастливее — это подтвердили эксперименты с парами. Новизна возвращает ощущение начала отношений.','Aron et al., 2000, Journal of Personality and Social Psychology']);
   /* 8. Юмор */
   var hA=me('A','q12'), hB=me('B','q12'), inst=q('q12').inst, uLine='';
-  if(hA!=null&&hB!=null) uLine=hA===hB?'Вы оба смеётесь до слёз над '+inst[hA]+'. '+LIB.humor[hA]+' Общие шутки становятся «внутренним языком» пары, который понятен только вам двоим.':
+  if(hA===5&&hB===5) uLine='Вы оба смеётесь до слёз над шутками друг друга. Редкая удача: каждый в паре — и комик, и благодарный зритель.';
+  else if(hA!=null&&hB!=null) uLine=hA===hB?'Вы оба смеётесь до слёз над '+inst[hA]+'. '+LIB.humor[hA]+' Общие шутки становятся «внутренним языком» пары, который понятен только вам двоим.':
     na+' смеётся до слёз над '+inst[hA]+'. '+LIB.humor[hA]+' '+nb+' — над '+inst[hB]+'. '+LIB.humor[hB];
   M.humor=hA===hB?'happy':'ok';
   body+=sec('Юмор',M.humor, null, esc(uLine), hA===hB?null:'Покажите друг другу то, от чего смеётесь вы. Юмора в паре станет вдвое больше.', null, null,
@@ -1063,13 +1087,14 @@ function reporthtml(){
 
 /* Демо-разбор по ссылке …#demo: пример пары, сразу экран разбора */
 function demo(){
-  S.a='Аня'; S.b='Дима'; S.since='2021-05';
+  S.demo=true; S.a='Аня'; S.b='Дима'; S.since='2021-05';
   S.ans.A={q7:{0:1,1:0,2:0,3:0,4:0,5:1}, q11:{0:1,1:0,2:1,3:1,4:1}, q1:{me:1,guess:2}, q2:{me:3,guess:1}, q3:{me:0,guess:1}, q4:3, q5:{me:0,guess:1}, q6:8, q8:9, q9:{me:0,guess:0}, q10:2, q12:{me:4,guess:3}, q13:'Съездить на Алтай и не брать ноутбуки'};
   S.ans.B={q7:{0:1,1:1,2:1,3:0,4:0,5:1}, q11:{0:0,1:0,2:1,3:0,4:1}, q1:{me:2,guess:1}, q2:{me:1,guess:1}, q3:{me:1,guess:0}, q4:4, q5:{me:1,guess:0}, q6:6, q8:8, q9:{me:0,guess:3}, q10:3, q12:{me:3,guess:4}, q13:'Научиться вместе кататься на сноуборде'};
   S.step='report2'; render();
 }
 
-if(location.hash==='#otzyv'){S.fbOnly=true;S.step='fbintro';render()}else if(location.hash==='#demo'){demo()}else if(location.hash==='#solo'){S.step='solo';render()}else if(location.hash==='#solar'){S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
+try{SAVED=JSON.parse(localStorage.getItem('tp_state')||'null')}catch(e){SAVED=null}
+if(!location.hash&&SAVED&&SAVED.step&&SAVED.step!=='intro'){S.step='resume';render()}else if(location.hash==='#otzyv'){S.fbOnly=true;S.step='fbintro';render()}else if(location.hash==='#demo'){demo()}else if(location.hash==='#solo'){S.step='solo';render()}else if(location.hash==='#solar'){S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
 </script>
 
 </body>
