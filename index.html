@@ -431,7 +431,7 @@ function render(){
     var ra=solarCalc(S.solar.A), rb=solarCalc(S.solar.B);
     h='<div class="card rep"><div class="scene-wrap">'+CATART.window()+'</div>'+solarCouple(ra,rb)+solarCard('A',ra)+solarCard('B',rb)+'<p class="small muted center">Соляр — развлекательный астрологический прогноз, рассчитан по положению планет в момент вашего дня рождения.</p><button class="btn" id="go">Дальше</button></div>';
   } else if(S.step==='fbintro'){
-    h='<div class="card center">'+CATS+'<h2>Помогите сделать тест лучше</h2><p class="muted">7 коротких вопросов про сам тест. Ваши ответы на тест мы не видим и не спрашиваем.</p><button class="btn" id="go">Ответить</button></div>';
+    h='<div class="card center">'+CATS+'<h2>Помогите сделать тест лучше</h2><p class="muted">'+(S.fbOnly?'Вы уже прошли тест вдвоём — спасибо! ':'')+'7 коротких вопросов про сам тест. Ваши ответы на тест мы не видим и не спрашиваем.</p><button class="btn" id="go">Ответить</button></div>';
   } else if(S.step==='fb'){
     var f=FEEDBACK[S.i];
     h='<div class="top"><span class="who both">Про тест</span><div class="bar"><i style="width:'+(S.i/FEEDBACK.length*100)+'%"></i></div><span class="count">'+(S.i+1)+' / '+FEEDBACK.length+'</span></div>'+
@@ -443,7 +443,7 @@ function render(){
       '<p class="small muted center">Откроется чат с готовым текстом — останется нажать «Отправить».</p>'+
       '<button class="btn ghost" id="copy">Скопировать оценку</button><p class="small muted center" id="copied" aria-live="polite"></p>'+
       '<details><summary class="small muted">Что отправится</summary><pre class="out" id="out">'+esc(txt)+'</pre></details>'+
-      '<button class="btn ghost" id="again">Ещё раз посмотреть наш разбор</button></div>';
+      (S.fbOnly?'</div>':'<button class="btn ghost" id="again">Ещё раз посмотреть наш разбор</button></div>');
   }
   app.dataset.who=(S.step==='q'||S.step==='hand')?S.who:'A';
   app.innerHTML=h; bind(); window.scrollTo(0,0);
@@ -701,7 +701,7 @@ function bind(){
   if(S.step==='done'){
     var cp=document.getElementById('copy'),msg=document.getElementById('copied');
     var sel=function(){var d=document.querySelector('details');d.open=true;var r=document.createRange();r.selectNodeContents(document.getElementById('out'));var s=getSelection();s.removeAllRanges();s.addRange(r);msg.textContent='Текст выделен — скопируй его вручную.'};
-    document.getElementById('again').onclick=function(){S.step='report2';render()};
+    if(!S.fbOnly)document.getElementById('again').onclick=function(){S.step='report2';render()};
     cp.onclick=function(){try{navigator.clipboard.writeText(payload()).then(function(){msg.textContent='Скопировано. Отправь в Telegram @jokovu.'},sel)}catch(e){sel()}};
     return;
   }
@@ -771,9 +771,10 @@ function compact(){
   return L.join('\n');
 }
 function payload(){
-  var r=reveal();
-  var L=['Оценка теста пары (фокус-группа v8)'];
+  var L=[S.fbOnly?'Оценка теста пары (отзыв по отдельной ссылке, тест проходили раньше)':'Оценка теста пары (фокус-группа v8)'];
   FEEDBACK.forEach(function(f){L.push('— '+f.text+' '+fmt(f,S.fb[f.id]))});
+  if(S.fbOnly)return L.join('\n');
+  var r=reveal();
   L.push('— Соляр: '+(S.solar.want==null?'не дошли':(S.solar.want?'хотят':'не хотят')));
   L.push('— Угадали друг друга: '+r.aHits+' и '+r.bHits+' из '+r.n);
   return L.join('\n');
@@ -1068,7 +1069,7 @@ function demo(){
   S.step='report2'; render();
 }
 
-if(location.hash==='#demo'){demo()}else if(location.hash==='#solo'){S.step='solo';render()}else if(location.hash==='#solar'){S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
+if(location.hash==='#otzyv'){S.fbOnly=true;S.step='fbintro';render()}else if(location.hash==='#demo'){demo()}else if(location.hash==='#solo'){S.step='solo';render()}else if(location.hash==='#solar'){S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
 </script>
 
 </body>
