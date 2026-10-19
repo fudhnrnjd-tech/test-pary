@@ -394,7 +394,7 @@ function render(){
     h=topbar('Вместе','both')+'<div class="card">'+jointhtml(j)+navrow(S.i>0)+'</div>';
   } else if(S.step==='hand'){
     h='<div class="card center">'+CATS+'<h2>'+(S.who==='A'?'Часть 2. Тайно<br>Отвечает '+esc(nm('A')):'Передай телефон: '+esc(nm('B')))+'</h2>'+
-      '<p class="muted">'+(S.who==='A'?esc(nm('B'))+', отвернись 🙈 Тут отвечаешь за себя и угадываешь, что ответит партнёр.':esc(nm('A'))+' уже ответил(а), ответы спрятаны. '+esc(nm('B'))+', теперь твоя очередь, и тоже без подглядываний.')+'</p>'+
+      '<p class="muted">'+(S.who==='A'?esc(nm('B'))+', отвернись 🙈 Тут в каждом вопросе два шага: сначала отвечаешь за себя, потом угадываешь, что на тот же вопрос ответит '+esc(nm('B'))+'.':esc(nm('A'))+' уже ответил(а), ответы спрятаны. '+esc(nm('B'))+', теперь твоя очередь, и тоже без подглядываний. Сначала отвечаешь за себя, потом угадываешь, что на тот же вопрос ответил(а) '+esc(nm('A'))+'.')+'</p>'+
       '<button class="btn" id="go">'+(S.who==='A'?'Я '+esc(nm('A'))+', начинаю':'Я '+esc(nm('B'))+', начинаю')+'</button></div>';
   } else if(S.step==='q'){
     var q=Q[S.i];
@@ -526,8 +526,8 @@ function qhtml(q,v){
     h+='<div class="opts">'+q.opts.map(function(o,k){var on=q.type==='multi'?(v||[]).indexOf(k)>=0:v===k;return '<button class="opt" data-k="'+k+'" aria-pressed="'+on+'">'+sub(o)+'</button>'}).join('')+'</div>';
   } else if(q.type==='guess'){
     v=v||{};
-    h+='<p class="sub">Твой ответ</p><div class="opts" data-part="me">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.me===k)+'">'+sub(o)+'</button>'}).join('')+'</div>'+
-       '<p class="sub">Как, по-твоему, ответит '+esc(nm(other(S.who)))+'?</p><div class="opts" data-part="guess">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.guess===k)+'">'+sub(o)+'</button>'}).join('')+'</div>';
+    h+='<p class="sub">1. Про тебя: что выберешь ты?</p><div class="opts" data-part="me">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.me===k)+'">'+sub(o)+'</button>'}).join('')+'</div>'+
+       '<p class="sub">2. Угадай: что выберет '+esc(nm(other(S.who)))+'?</p><p class="muted small" style="margin-top:-6px">'+esc(nm(other(S.who)))+' отвечает на этот же вопрос за себя. Попробуй угадать этот ответ</p><div class="opts" data-part="guess">'+q.opts.map(function(o,k){return '<button class="opt" data-k="'+k+'" aria-pressed="'+(v.guess===k)+'">'+sub(o)+'</button>'}).join('')+'</div>';
   } else if(q.type==='slider'){
     var val=(v==null)?Math.round((q.min+q.max)/2):v;
     h+='<div class="range"><div class="val" id="sv">'+(q.who?esc(whoWord(q,val)):val)+'</div><input type="range" id="sl" min="'+q.min+'" max="'+q.max+'" step="1" value="'+val+'" aria-label="'+esc(q.text)+'"><div class="ends"><span>'+sub(q.left)+'</span><span>'+sub(q.right)+'</span></div></div>';
