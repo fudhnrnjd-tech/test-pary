@@ -74,6 +74,12 @@ textarea{font:inherit;width:100%;padding:14px 16px;border-radius:18px;border:1.5
 input[type=time],input[type=month]{min-height:42px;-webkit-appearance:none;appearance:none}
 .range .val{font-family:var(--font-display);font-size:1.8rem;text-align:center;color:var(--accent)}
 .sub{font-size:.8rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.consent{display:grid;grid-template-columns:56px 56px 1fr;column-gap:8px;row-gap:6px;align-items:start}
+.consent .cn{font-size:.74rem;font-weight:800;text-align:center;padding:4px 4px;border-radius:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.consent .cn.a{background:var(--a-soft);color:var(--a)}.consent .cn.b{background:var(--b-soft);color:var(--b)}
+.consent input{justify-self:center;width:26px;height:26px;margin:2px 0 0;accent-color:var(--a);cursor:pointer}
+.consent input.b{accent-color:var(--b)}
+.consent .ctext{font-size:.86rem;color:var(--muted);cursor:pointer}
 .check{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:.86rem;cursor:pointer;color:var(--muted)}
 .check input{width:18px;height:18px;margin-top:2px;accent-color:var(--b)}
 .hero-cats{width:210px;max-width:100%;margin:0 auto;display:block}
@@ -410,7 +416,9 @@ function render(){
       '<div style="display:grid;gap:10px"><div class="field"><label for="na">Как зовут первого</label><input type="text" id="na" maxlength="20" autocomplete="off" placeholder="Например, Юля" value="'+esc(S.a)+'"></div>'+
       '<div class="field b"><label for="nb">Как зовут второго</label><input type="text" id="nb" maxlength="20" autocomplete="off" placeholder="Например, Дима" value="'+esc(S.b)+'"></div>'+
       '<div class="field" style="border-color:var(--line);background:#f7f6fb"><label for="since">Когда начали встречаться (можно примерно)</label><input type="month" id="since" value="'+esc(S.since)+'"></div></div>'+
-      '<label class="check"><input type="checkbox" id="c1"><span>Нам обоим есть 18 лет. Мы понимаем, что тест развлекательный и не заменяет консультацию специалиста</span></label>'+
+      /* Согласие ставит каждый партнёр за себя: колонка с именем у каждого */
+      '<div class="consent"><span class="cn a" id="cnA">'+esc(S.a||'Первый')+'</span><span class="cn b" id="cnB">'+esc(S.b||'Второй')+'</span><span></span>'+
+      '<input type="checkbox" id="c1a" aria-label="Согласие первого"><input type="checkbox" id="c1b" class="b" aria-label="Согласие второго"><label for="c1a" class="ctext">Мне есть 18 лет. Я понимаю, что тест развлекательный и не заменяет консультацию специалиста</label></div>'+
       '<button class="btn" id="go" disabled>Начать</button></div>';
   } else if(S.step==='jointintro'){
     h='<div class="card center">'+CATS+'<h2>Часть 1. Вместе</h2><p class="muted">Садитесь рядом. В каждом вопросе у каждого своя строка с именем: отвечайте за себя. Спорить можно и нужно 😄</p><button class="btn" id="go">Поехали</button></div>';
@@ -698,9 +706,11 @@ function bind(){
     return;
   }
   if(S.step==='intro'){
-    var na=document.getElementById('na'),nb=document.getElementById('nb'),c1=document.getElementById('c1'),si=document.getElementById('since');
-    var upd=function(){S.a=na.value.trim();S.b=nb.value.trim();S.since=si.value;go.disabled=!(S.a&&S.b&&c1.checked)};
-    na.oninput=nb.oninput=si.oninput=si.onchange=c1.onchange=upd; upd();
+    var na=document.getElementById('na'),nb=document.getElementById('nb'),ca=document.getElementById('c1a'),cb=document.getElementById('c1b'),si=document.getElementById('since');
+    var upd=function(){S.a=na.value.trim();S.b=nb.value.trim();S.since=si.value;
+      document.getElementById('cnA').textContent=S.a||'Первый'; document.getElementById('cnB').textContent=S.b||'Второй';
+      go.disabled=!(S.a&&S.b&&ca.checked&&cb.checked)};
+    na.oninput=nb.oninput=si.oninput=si.onchange=ca.onchange=cb.onchange=upd; upd();
     go.onclick=function(){S.step='jointintro';render()};
     return;
   }
