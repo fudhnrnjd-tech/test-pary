@@ -288,7 +288,7 @@ var CATART=(function(){
 })();
 /* Иллюстрации с Мишаней и Кнопкой (Nano Banana Pro, паспорт героев 21.10.2026) вместо нарисованных кодом SVG */
 CATART=(function(){
-  var ALT={know:'Мишаня гадает, что хочет Кнопка',support:'Мишаня радуется хорошей новости Кнопки',chores:'Мишаня моет посуду, Кнопка руководит',humor:'Мишаня и Кнопка хохочут над телефоном',hero:'Мишаня и Кнопка',cuddle:'Мишаня и Кнопка спят в обнимку',window:'Мишаня и Кнопка у окна',backs:'Мишаня и Кнопка сидят спиной друг к другу',makeup:'Мишаня несёт Кнопке рыбку',suitcase:'Мишаня и Кнопка собираются в отпуск'};
+  var ALT={hand:'Кнопка отвечает, Мишаня закрыл глаза',reveal:'Мишаня и Кнопка заглядывают в телефон',stars:'Мишаня и Кнопка смотрят на звёзды',know:'Мишаня гадает, что хочет Кнопка',support:'Мишаня радуется хорошей новости Кнопки',chores:'Мишаня моет посуду, Кнопка руководит',humor:'Мишаня и Кнопка хохочут над телефоном',hero:'Мишаня и Кнопка',cuddle:'Мишаня и Кнопка спят в обнимку',window:'Мишаня и Кнопка у окна',backs:'Мишаня и Кнопка сидят спиной друг к другу',makeup:'Мишаня несёт Кнопке рыбку',suitcase:'Мишаня и Кнопка собираются в отпуск'};
   var S={};
   Object.keys(ALT).forEach(function(k){S[k]=function(){return '<img class="art" src="img/'+k+'.jpg" alt="'+ALT[k]+'" loading="lazy" decoding="async">'}});
   return S;
@@ -345,6 +345,7 @@ function sub(t){return t.replace(/\{P\}/g,esc(nm(other(S.who)))).replace(/\{ME\}
 function plain(t,w){return t.replace(/\{P\}/g,nm(other(w))).replace(/\{ME\}/g,nm(w))}
 
 var CATS='<img class="hero-cats" src="img/hero.jpg" alt="Мишаня и Кнопка" decoding="async">';
+function catsImg(k,alt){return '<img class="hero-cats" src="img/'+k+'.jpg" alt="'+(alt||'Мишаня и Кнопка')+'" decoding="async">'}
 
 var TOTAL = JOINT.length + Q.length*2;
 function progress(){ if(S.step==='joint')return S.i; if(S.step==='q')return JOINT.length+(S.who==='B'?Q.length:0)+S.i; return 0 }
@@ -389,14 +390,14 @@ function render(){
     var j=JOINT[S.i];
     h=topbar('Вместе','both')+'<div class="card">'+jointhtml(j)+navrow(S.i>0)+'</div>';
   } else if(S.step==='hand'){
-    h='<div class="card center">'+CATS+'<h2>'+(S.who==='A'?'Часть 2. Тайно<br>Отвечает '+esc(nm('A')):'Передай телефон<br>Теперь отвечает '+esc(nm('B')))+'</h2>'+
+    h='<div class="card center">'+catsImg('hand')+'<h2>'+(S.who==='A'?'Часть 2. Тайно<br>Отвечает '+esc(nm('A')):'Передай телефон<br>Теперь отвечает '+esc(nm('B')))+'</h2>'+
       '<p class="muted">'+(S.who==='A'?esc(nm('B'))+', отвернись 🙈 '+esc(nm('A'))+', в каждом вопросе два шага: сначала отвечаешь за себя, потом угадываешь, что на тот же вопрос ответит '+esc(nm('B'))+'.':'Готово, ответы спрятаны. '+esc(nm('B'))+', теперь твоя очередь, и тоже без подглядываний. Сначала отвечаешь за себя, потом угадываешь, что на тот же вопрос ответил(а) '+esc(nm('A'))+'.')+'</p>'+
       '<button class="btn" id="go">'+(S.who==='A'?'Я '+esc(nm('A'))+', начинаю':'Я '+esc(nm('B'))+', начинаю')+'</button></div>';
   } else if(S.step==='q'){
     var q=Q[S.i];
     h=topbar(esc(nm(S.who)))+'<div class="card">'+qhtml(q, S.ans[S.who][q.id])+navrow(S.i>0)+'</div>';
   } else if(S.step==='revealintro'){
-    h='<div class="card center"><div class="scene-wrap">'+CATART.window()+'</div><h2>Часть 3. Открываем ответы</h2><p class="muted">Садитесь снова вместе. Сейчас узнаете, насколько хорошо вы знаете друг друга.</p><button class="btn" id="go">Открыть</button></div>';
+    h='<div class="card center"><div class="scene-wrap">'+CATART.reveal()+'</div><h2>Часть 3. Открываем ответы</h2><p class="muted">Садитесь снова вместе. Сейчас узнаете, насколько хорошо вы знаете друг друга.</p><button class="btn" id="go">Открыть</button></div>';
   } else if(S.step==='reveal'){
     h='<div class="card reveal">'+revealhtml()+'<button class="btn" id="go">Дальше</button></div>';
   } else if(S.step==='report2'){
@@ -404,16 +405,16 @@ function render(){
   } else if(S.step==='report'){
     h='<div class="card rep">'+reporthtml()+'<button class="btn" id="go">Дальше</button></div>';
   } else if(S.step==='solar'){
-    h='<div class="card">'+CATS+'<div class="center" style="display:grid;gap:8px"><h2>Обещанный бонус: соляр пары ✨</h2><p class="muted">Соляр — это астрологический прогноз на ваш текущий год жизни, от дня рождения до следующего. Посчитаем для каждого и покажем, каким будет год для вас вдвоём. Нужны дата и город рождения, время — если знаете.</p></div>'+
+    h='<div class="card">'+catsImg('stars')+'<div class="center" style="display:grid;gap:8px"><h2>Обещанный бонус: соляр пары ✨</h2><p class="muted">Соляр — это астрологический прогноз на ваш текущий год жизни, от дня рождения до следующего. Посчитаем для каждого и покажем, каким будет год для вас вдвоём. Нужны дата и город рождения, время — если знаете.</p></div>'+
       '<div class="row"><button class="btn ghost" id="no">Нет, спасибо</button><button class="btn" id="yes">Хочу</button></div></div>';
   } else if(S.step==='solarsoon'){
-    h='<div class="card center">'+CATS+'<h2>Скоро будет! 🌙</h2><p class="muted">Соляр пары сейчас в разработке. Спасибо за интерес: так мы понимаем, что делать в первую очередь.</p><button class="btn" id="go">Дальше</button></div>';
+    h='<div class="card center">'+catsImg('stars')+'<h2>Скоро будет! 🌙</h2><p class="muted">Соляр пары сейчас в разработке. Спасибо за интерес: так мы понимаем, что делать в первую очередь.</p><button class="btn" id="go">Дальше</button></div>';
   } else if(S.step==='solarform'){
     h='<div class="card"><h2>Данные для соляра</h2><p class="muted small">Время рождения можно не указывать, но с ним точнее. Город можно ввести любой: начните печатать, появятся подсказки.</p>'+
       '<datalist id="cityList">'+CITIES.map(function(c){return '<option value="'+esc(c[0])+'">'}).join('')+'</datalist>'+
       solarfields('A')+solarfields('B')+'<p class="small muted" id="serr" aria-live="polite"></p><button class="btn" id="go" disabled>Рассчитать соляр ✨</button></div>';
   } else if(S.step==='solo'){
-    h='<div class="card"><div class="scene-wrap">'+CATART.window()+'</div><h2>Ваш соляр на год ✨</h2>'+
+    h='<div class="card"><div class="scene-wrap">'+CATART.stars()+'</div><h2>Ваш соляр на год ✨</h2>'+
       '<p class="muted small">Соляр — астрологический прогноз на ваш текущий год жизни, от дня рождения до следующего. Время рождения можно не указывать, но с ним точнее. Город можно ввести любой: начните печатать, появятся подсказки.</p>'+
       '<div class="field" style="border-color:var(--line);background:#f7f6fb"><label for="soloName">Как вас зовут</label><input type="text" id="soloName" maxlength="20" autocomplete="off" placeholder="Например, Юля" value="'+esc(S.a==='Партнёр 1'?'':S.a)+'"></div>'+
       '<datalist id="cityList">'+CITIES.map(function(c){return '<option value="'+esc(c[0])+'">'}).join('')+'</datalist>'+
@@ -421,13 +422,13 @@ function render(){
   } else if(S.step==='solores'){
     var rs=solarCalc(S.solar.A);
     if(!rs){h=SOLAR_FAIL;}else
-    h='<div class="card rep"><div class="scene-wrap">'+CATART.hero()+'</div>'+solarCard('A',rs)+
+    h='<div class="card rep"><div class="scene-wrap">'+CATART.stars()+'</div>'+solarCard('A',rs)+
       '<p class="small muted center">Соляр — развлекательный астрологический прогноз. Он рассчитан по положению планет в момент, когда Солнце в этом году возвращается в точку вашего рождения. Поэтому Луна и Венера здесь — из карты года и могут отличаться от натальных.</p>'+
       '<button class="btn" id="go">Посчитать для другого человека</button></div>';
   } else if(S.step==='solarres'){
     var ra=solarCalc(S.solar.A), rb=solarCalc(S.solar.B);
     if(!ra||!rb){h=SOLAR_FAIL;}else
-    h='<div class="card rep"><div class="scene-wrap">'+CATART.window()+'</div>'+solarCouple(ra,rb)+solarCard('A',ra)+solarCard('B',rb)+'<p class="small muted center">Соляр — развлекательный астрологический прогноз. Он рассчитан по положению планет в момент, когда Солнце в этом году возвращается в точку вашего рождения. Поэтому Луна и Венера здесь — из карты года и могут отличаться от натальных.</p><button class="btn" id="go">Дальше</button></div>';
+    h='<div class="card rep"><div class="scene-wrap">'+CATART.stars()+'</div>'+solarCouple(ra,rb)+solarCard('A',ra)+solarCard('B',rb)+'<p class="small muted center">Соляр — развлекательный астрологический прогноз. Он рассчитан по положению планет в момент, когда Солнце в этом году возвращается в точку вашего рождения. Поэтому Луна и Венера здесь — из карты года и могут отличаться от натальных.</p><button class="btn" id="go">Дальше</button></div>';
   } else if(S.step==='fbintro'){
     h='<div class="card center">'+CATS+'<h2>Помогите сделать тест лучше</h2><p class="muted">'+(S.fbOnly?'Вы уже прошли тест вдвоём — спасибо! ':'')+'7 коротких вопросов про сам тест. Ваши ответы на тест мы не видим и не спрашиваем.</p><button class="btn" id="go">Ответить</button></div>';
   } else if(S.step==='fb'){
