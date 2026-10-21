@@ -288,7 +288,7 @@ var CATART=(function(){
 })();
 /* Иллюстрации с Мишаней и Кнопкой (Nano Banana Pro, паспорт героев 21.10.2026) вместо нарисованных кодом SVG */
 CATART=(function(){
-  var ALT={hero:'Мишаня и Кнопка',cuddle:'Мишаня и Кнопка спят в обнимку',window:'Мишаня и Кнопка у окна',backs:'Мишаня и Кнопка сидят спиной друг к другу',makeup:'Мишаня несёт Кнопке рыбку',suitcase:'Мишаня и Кнопка собираются в отпуск'};
+  var ALT={know:'Мишаня гадает, что хочет Кнопка',support:'Мишаня радуется хорошей новости Кнопки',chores:'Мишаня моет посуду, Кнопка руководит',humor:'Мишаня и Кнопка хохочут над телефоном',hero:'Мишаня и Кнопка',cuddle:'Мишаня и Кнопка спят в обнимку',window:'Мишаня и Кнопка у окна',backs:'Мишаня и Кнопка сидят спиной друг к другу',makeup:'Мишаня несёт Кнопке рыбку',suitcase:'Мишаня и Кнопка собираются в отпуск'};
   var S={};
   Object.keys(ALT).forEach(function(k){S[k]=function(){return '<img class="art" src="img/'+k+'.jpg" alt="'+ALT[k]+'" loading="lazy" decoding="async">'}});
   return S;
@@ -977,7 +977,9 @@ function reporthtml(){
   var days=daysTogether();
   var head='<div class="arch"><div class="scene-wrap">'+CATART.hero()+'</div><div class="lbl">Ваша пара</div><h2>'+esc(arch.t)+'</h2>'+(days?'<div class="days">Вместе '+days.toLocaleString('ru-RU')+' '+plural(days,'день','дня','дней')+'</div>':'')+'<p>'+esc(arch.d)+'</p></div>';
   function sec(title,mood,big,line,tip,extra,sc,sci){
-    var scene=sc||(mood==='happy'?'cuddle':(mood==='ok'?'window':'backs'));
+    /* у каждого раздела своя сцена — картинки в разборе не повторяются */
+    var SCENE={'Знаете друг друга':'know','Ссоры и примирение':'makeup','Поддержка':'support','Надёжность':'cuddle','Деньги':'suitcase','Быт':'chores','Планы и досуг':'window','Юмор':'humor'};
+    var scene=SCENE[title]||sc||(mood==='happy'?'cuddle':(mood==='ok'?'window':'backs'));
     return '<div class="sec"><div class="secimg">'+CATART[scene]()+'</div><div class="sechead"><h3>'+title+'</h3><span class="chip '+mood+'">'+CHIP[mood]+'</span></div>'+
       (big?'<div class="big">'+esc(big)+'</div>':'')+(line?'<p>'+line+'</p>':'')+(extra||'')+
       (sci?'<div class="sci"><span class="t">🔬 Почему это важно</span><p>'+esc(sci[0])+'</p><span class="src">'+esc(sci[1])+'</span></div>':'')+
