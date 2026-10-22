@@ -336,6 +336,7 @@ var FEEDBACK = [
   {id:'f_share', type:'choice', text:'Посоветовали бы этот тест знакомым парам?', opts:['Да, уже есть кому','Скорее да','Скорее нет','Нет']}
 ];
 
+var FG = location.hash==='#fg'; /* фокус-группа: после теста — вопросы про тест */
 var S = {step:'intro', a:'', b:'', since:'', who:'A', i:0, ans:{A:{},B:{}}, fb:{}, solar:{want:null, A:{}, B:{}}};
 var app = document.getElementById('app');
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -358,7 +359,7 @@ var STEPS=['jointintro','joint','hand','q','revealintro','reveal','report','sola
 function saveState(){
   if(S.fbOnly||S.demo||location.hash)return;
   try{
-    if(S.step==='done'){localStorage.removeItem('tp_state');return}
+    if(S.step==='done'||S.step==='fin'){localStorage.removeItem('tp_state');return}
     if(STEPS.indexOf(S.step)<0)return;
     S.ts=Date.now(); S.v=STATE_V; localStorage.setItem('tp_state',JSON.stringify(S));
   }catch(e){}
@@ -435,6 +436,11 @@ function render(){
     var f=FEEDBACK[S.i];
     h='<div class="top"><span class="who both">Про тест</span><div class="bar"><i style="width:'+(S.i/FEEDBACK.length*100)+'%"></i></div><span class="count">'+(S.i+1)+' / '+FEEDBACK.length+'</span></div>'+
       '<div class="card">'+qhtml(f, S.fb[f.id])+navrow(S.i>0)+'</div>';
+  } else if(S.step==='fin'){
+    h='<div class="card">'+CATS+'<div class="center" style="display:grid;gap:8px"><h2>Готово! 🧡</h2><p class="muted">Спасибо, что прошли тест вдвоём. Если было интересно, отправьте его знакомым парам: пусть тоже проверят, насколько хорошо знают друг друга.</p></div>'+
+      '<button class="btn" id="share">Поделиться тестом</button><p class="small muted center" id="shared" aria-live="polite"></p>'+
+      (S.ans.A.q1?'<button class="btn ghost" id="again">Ещё раз посмотреть наш разбор</button>':'')+
+      '<p class="small muted center" style="margin-top:14px">Ещё больше про жизнь пар — в мультсериале про котов Мишаню и Кнопку: <a href="https://vk.ru/misha.i.knopka" target="_blank" rel="noopener" style="color:inherit">ВКонтакте</a> · <a href="https://www.youtube.com/@misha.i.knopka" target="_blank" rel="noopener" style="color:inherit">YouTube</a></p></div>';
   } else if(S.step==='done'){
     var txt=payload();
     h='<div class="card">'+CATS+'<div class="center" style="display:grid;gap:8px"><h2>Последний шаг 🧡</h2><p class="muted">Нажмите кнопку ниже, чтобы отправить оценку. Это 5 секунд, а для нас это самое ценное: по вашим отзывам мы доделываем тест. Уйдут только оценки и общий счёт угадываний, сами ответы останутся у вас.</p></div>'+
@@ -682,11 +688,11 @@ function bind(){
   if(S.step==='hand'){go.onclick=function(){S.step='q';S.i=0;render()};return}
   if(S.step==='revealintro'){go.onclick=function(){S.step='reveal';render()};return}
   if(S.step==='reveal'){go.onclick=function(){S.step='report';render()};return}
-  if(S.step==='report2'){go.onclick=function(){if(location.hash==='#demo'){location.hash='';S={step:'intro',a:'',b:'',since:'',who:'A',i:0,ans:{A:{},B:{}},fb:{},solar:{want:null,A:{},B:{}}};}else{S.step='done'}render()};return}
+  if(S.step==='report2'){go.onclick=function(){if(location.hash==='#demo'){location.hash='';S={step:'intro',a:'',b:'',since:'',who:'A',i:0,ans:{A:{},B:{}},fb:{},solar:{want:null,A:{},B:{}}};}else{S.step=(FG||S.fbOnly)?'done':'fin'}render()};return}
   if(S.step==='report'){go.onclick=function(){S.step='solar';render()};return}
   if(S.step==='solar'){
     document.getElementById('yes').onclick=function(){S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()};
-    document.getElementById('no').onclick=function(){S.solar.want=false;S.step='fbintro';render()};
+    document.getElementById('no').onclick=function(){S.solar.want=false;S.step=FG?'fbintro':'fin';render()};
     return;
   }
   if(S.step==='solarform'){
@@ -709,7 +715,7 @@ function bind(){
     };
     return;
   }
-  if(S.step==='solarres'){go.onclick=function(){S.step='fbintro';render()};return}
+  if(S.step==='solarres'){go.onclick=function(){S.step=FG?'fbintro':'fin';render()};return}
   if(S.step==='solores'){go.onclick=function(){S.a='';S.solar.A={};S.step='solo';render()};return}
   if(S.step==='solo'){
     var nmI=document.getElementById('soloName');
@@ -729,8 +735,17 @@ function bind(){
     };
     return;
   }
-  if(S.step==='solarsoon'){go.onclick=function(){S.step='fbintro';render()};return}
+  if(S.step==='solarsoon'){go.onclick=function(){S.step=FG?'fbintro':'fin';render()};return}
   if(S.step==='fbintro'){go.onclick=function(){S.step='fb';S.i=0;render()};return}
+  if(S.step==='fin'){
+    var ag2=document.getElementById('again'); if(ag2)ag2.onclick=function(){S.step='report2';render()};
+    var sh=document.getElementById('share'),sm=document.getElementById('shared'),url='https://dvelapki.ru';
+    sh.onclick=function(){
+      if(navigator.share){navigator.share({title:'Тест для пары',text:'Пройдите тест вдвоём: насколько хорошо вы знаете друг друга?',url:url}).catch(function(){});return}
+      try{navigator.clipboard.writeText(url).then(function(){sm.textContent='Ссылка скопирована: '+url},function(){sm.textContent='Ссылка на тест: '+url})}catch(e){sm.textContent='Ссылка на тест: '+url}
+    };
+    return;
+  }
   if(S.step==='done'){
     var cp=document.getElementById('copy'),msg=document.getElementById('copied');
     var sel=function(){var d=document.querySelector('details');d.open=true;var r=document.createRange();r.selectNodeContents(document.getElementById('out'));var s=getSelection();s.removeAllRanges();s.addRange(r);msg.textContent='Текст выделен — скопируйте его вручную.'};
