@@ -413,12 +413,12 @@ function render(){
   } else if(S.step==='solarsoon'){
     h='<div class="card center">'+catsImg('stars')+'<h2>Скоро будет! 🌙</h2><p class="muted">Соляр пары сейчас в разработке. Спасибо за интерес: так мы понимаем, что делать в первую очередь.</p><button class="btn" id="go">Дальше</button></div>';
   } else if(S.step==='solarform'){
-    h='<div class="card"><h2>Данные для соляра</h2><p class="muted small">Время рождения можно не указывать, но с ним точнее. Город можно ввести любой: начните печатать, появятся подсказки.</p>'+
+    h='<div class="card"><h2>Данные для соляра</h2><p class="note">⏰ Время рождения очень важно: от него зависят асцендент, дома и общий вывод пары. Не знаете точно — спросите у родителей или укажите примерно.</p><p class="muted small"> Город можно ввести любой: начните печатать, появятся подсказки.</p>'+
       '<datalist id="cityList">'+CITIES.map(function(c){return '<option value="'+esc(c[0])+'">'}).join('')+'</datalist>'+
       solarfields('A')+solarfields('B')+'<p class="small muted" id="serr" aria-live="polite"></p><button class="btn" id="go" disabled>Рассчитать соляр ✨</button></div>';
   } else if(S.step==='solo'){
     h='<div class="card"><div class="scene-wrap">'+CATART.stars()+'</div><h2>Ваш соляр на год ✨</h2>'+
-      '<p class="muted small">Соляр — астрологический прогноз на ваш текущий год жизни, от дня рождения до следующего. Время рождения можно не указывать, но с ним точнее. Город можно ввести любой: начните печатать, появятся подсказки.</p>'+
+      '<p class="muted small">Соляр — астрологический прогноз на ваш текущий год жизни, от дня рождения до следующего.</p><p class="note">⏰ Время рождения очень важно: от него зависят асцендент и дома. Не знаете точно — спросите у родителей или укажите примерно.</p><p class="muted small"> Город можно ввести любой: начните печатать, появятся подсказки.</p>'+
       '<div class="field" style="border-color:var(--line);background:#f7f6fb"><label for="soloName">Как вас зовут</label><input type="text" id="soloName" maxlength="20" autocomplete="off" placeholder="Например, Юля" value="'+esc(S.a==='Партнёр 1'?'':S.a)+'"></div>'+
       '<datalist id="cityList">'+CITIES.map(function(c){return '<option value="'+esc(c[0])+'">'}).join('')+'</datalist>'+
       solarfields('A',true).replace(/<label>[^<]*<\/label>/,'')+'<p class="small muted" id="serr" aria-live="polite"></p><button class="btn" id="go" disabled>Рассчитать соляр ✨</button></div>';
@@ -634,7 +634,7 @@ function solarDate(dt){var m=['января','февраля','марта','ап
 function solarCard(w,res){
   var cls=w==='A'?'a':'b';
   return '<div class="sec"><div class="sechead" style="padding-top:14px"><h3>'+esc(nm(w))+'</h3><span class="chip '+(w==='A'?'grumpy':'ok')+'">Солнце '+esc(SIGNS_IN[res.sunS])+'</span></div>'+
-    '<p class="small muted">Ваш солярный год начался '+esc(solarDate(res.start))+' ('+esc(res.city)+')'+(res.exact?'':'. Без точного времени рождения прогноз приблизительный')+'.</p>'+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
+    '<p class="small muted">Ваш солярный год начался '+esc(solarDate(res.start))+' ('+esc(res.city)+')'+'.</p>'+(res.exact?'':'<p class="small note">⏰ Время рождения не указано, поэтому мы посчитали на полдень. Асцендент, дома и выводы могут заметно отличаться от точного расчёта — укажите время, хотя бы примерное.</p>')+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
     '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+esc(ASC_T[res.ascS])+'</p>'+
     '<div class="sci"><span class="t">☀️ Главная сфера года · '+res.house+'-й дом</span><p>'+esc(HOUSE_T[res.house-1].charAt(0).toUpperCase()+HOUSE_T[res.house-1].slice(1))+'.</p></div>'+
     '<p class="small"><b>🌙 Эмоции:</b> Луна года '+esc(SIGNS_IN[res.moonS])+' — '+esc(MOON_T[res.moonS])+'.</p>'+
@@ -703,7 +703,7 @@ function solarFull(r){
 }
 function solarFullCard(w,res){
   var f=fOf(res), h='<div class="sec"><div class="sechead" style="padding-top:14px"><h3>'+esc(nm(w))+'</h3><span class="chip '+(w==='A'?'grumpy':'ok')+'">Солнце '+esc(SIGNS_IN[res.sunS])+'</span></div>'+
-    '<p class="small muted">Солярный год: с '+esc(solarDate(res.start).replace(/ в (\d\d:\d\d)$/,', $1,'))+' до следующего дня рождения ('+esc(res.city)+')'+(res.exact?'':'. Без точного времени рождения дома могут сдвинуться — читайте как общий ориентир')+'.</p>'+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
+    '<p class="small muted">Солярный год: с '+esc(solarDate(res.start).replace(/ в (\d\d:\d\d)$/,', $1,'))+' до следующего дня рождения ('+esc(res.city)+')'+'.</p>'+(res.exact?'':'<p class="small note">⏰ Время рождения не указано, поэтому мы посчитали на полдень. Асцендент, дома и выводы могут заметно отличаться от точного расчёта — укажите время, хотя бы примерное.</p>')+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
     '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+esc(ASC_T[res.ascS])+'</p>'+
     '<div class="lbl" style="margin-top:6px">Планеты года</div>';
   PL.forEach(function(p){var hs=houseIn(f.pos[p[0]],res), txt=p[0]==='Sun'?HOUSE_T[hs-1].charAt(0).toUpperCase()+HOUSE_T[hs-1].slice(1)+'.':PL_T[p[0]][hs-1];
