@@ -645,7 +645,7 @@ function solarCard(w,res){
   var cls=w==='A'?'a':'b';
   return '<div class="sec"><div class="sechead" style="padding-top:14px"><h3>'+esc(nm(w))+'</h3><span class="chip '+(w==='A'?'grumpy':'ok')+'">Солнце '+esc(SIGNS_IN[res.sunS])+'</span></div>'+
     '<p class="small muted">'+(res.upcoming?'Ваш день рождения совсем скоро, поэтому показываем прогноз на новый солярный год: он начнётся ':'Ваш солярный год начался ')+esc(solarDate(res.start))+' ('+esc(res.city)+')'+'.</p>'+(res.exact?'':'<p class="small note">⏰ Время рождения не указано, поэтому мы посчитали на полдень. Асцендент, дома и выводы могут заметно отличаться от точного расчёта — укажите время, хотя бы примерное.</p>')+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
-    '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+esc(ASC_T[res.ascS])+'</p>'+
+    '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+md(ASC_T[res.ascS].replace(/^([^:.]+)([:.])/,'**$1**$2'))+'</p>'+
     '<div class="sci"><span class="t">☀️ Главная сфера года · '+res.house+'-й дом</span><p>'+esc(HOUSE_T[res.house-1].charAt(0).toUpperCase()+HOUSE_T[res.house-1].slice(1))+'.</p></div>'+
     '<p class="small"><b>🌙 Эмоции:</b> Луна года '+esc(SIGNS_IN[res.moonS])+' — '+esc(MOON_T[res.moonS])+'.</p>'+
     '<p class="small"><b>💗 Любовь:</b> Венера года '+esc(SIGNS_IN[res.venS])+' — '+esc(VENUS_T[res.venS])+'.</p></div>';
@@ -714,10 +714,10 @@ function solarFull(r){
 function solarFullCard(w,res){
   var f=fOf(res), h='<div class="sec"><div class="sechead" style="padding-top:14px"><h3>'+esc(nm(w))+'</h3><span class="chip '+(w==='A'?'grumpy':'ok')+'">Солнце '+esc(SIGNS_IN[res.sunS])+'</span></div>'+
     '<p class="small muted">'+(res.upcoming?'День рождения совсем скоро, поэтому это прогноз на новый солярный год. ':'')+'Солярный год: с '+esc(solarDate(res.start).replace(/ в (\d\d:\d\d)$/,', $1,'))+' до следующего дня рождения ('+esc(res.city)+')'+'.</p>'+(res.exact?'':'<p class="small note">⏰ Время рождения не указано, поэтому мы посчитали на полдень. Асцендент, дома и выводы могут заметно отличаться от точного расчёта — укажите время, хотя бы примерное.</p>')+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
-    '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+esc(ASC_T[res.ascS])+'</p>'+
+    '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+md(ASC_T[res.ascS].replace(/^([^:.]+)([:.])/,'**$1**$2'))+'</p>'+
     '<div class="lbl" style="margin-top:6px">Планеты года</div>';
   PL.forEach(function(p){var hs=houseIn(f.pos[p[0]],res), txt=p[0]==='Sun'?HOUSE_T[hs-1].charAt(0).toUpperCase()+HOUSE_T[hs-1].slice(1)+'.':PL_T[p[0]][hs-1];
-    h+='<div class="sci"><span class="t">'+p[1]+' '+esc(p[2])+' · '+esc(PLN[p[0]])+' '+esc(SIGNS_IN[signOf(f.pos[p[0]])])+', '+hs+'-й дом</span><p>'+esc(txt)+'</p></div>'});
+    h+='<div class="sci"><span class="t">'+p[1]+' '+esc(p[2])+' · '+esc(PLN[p[0]])+' '+esc(SIGNS_IN[signOf(f.pos[p[0]])])+', '+hs+'-й дом</span><p>'+md(b1(txt))+'</p></div>'});
   h+='<div class="lbl" style="margin-top:6px">Ваш год по месяцам</div><div class="mlist">';
   f.months.forEach(function(m){h+='<p class="small"><b>'+esc(dShort(m.from))+' — '+esc(dShort(m.to))+'</b> · '+esc(MONTH_T[m.house-1])+'</p>'});
   h+='</div><div class="lbl" style="margin-top:6px">Ретроградные периоды</div>';
@@ -823,6 +823,7 @@ function coupleData(a,b){
 function md(s){s=esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');return /^<b>/.test(s)?s:s.replace(/^([^:<]{1,30}):\s/,'<b>$1:</b> ')}
 function b1(s){var i=s.indexOf('. ');return i>0?'**'+s.slice(0,i+1)+'**'+s.slice(i+1):'**'+s+'**'}
 function pl(arr){return arr.map(function(l){return '<p class="small">'+md(l)+'</p>'}).join('')}
+function leadB(s){return /^[^:]{1,30}: /.test(s)?s:s.replace(/^([^—]{6,70}) — /,'**$1** — ')}
 function coupleBlock(c,full){
   var h='<div class="arch" style="text-align:left"><div class="lbl" style="text-align:center">'+(full?'Полный соляр пары':'Соляр пары')+'</div><h2 style="text-align:center">Ваш общий год</h2>'+
     '<div class="big" style="text-align:center">«'+esc(c.year.title)+'»</div><p>'+md(c.year.text)+'</p>';
@@ -832,7 +833,7 @@ function coupleBlock(c,full){
       '<div class="sci"><span class="t">💞 Лучшие моменты года</span>'+pl(c.best)+'</div>'+
       '<div class="sci"><span class="t">🤝 Как поддержать друг друга</span>'+pl(c.support)+'</div>';
   }else{
-    h+='<div class="sci"><span class="t">🔗 Как вы сочетаетесь</span>'+pl(c.match.slice(0,2))+'</div>'+
+    h+='<div class="sci"><span class="t">🔗 Как вы сочетаетесь</span>'+pl(c.match.slice(0,2).map(leadB))+'</div>'+
       (c.risk.length?'<div class="sci"><span class="t">⚡ Где риск поссориться</span>'+pl([c.risk[0]])+'</div>':'')+
       '<div class="sci"><span class="t">💞 Лучший месяц для вас двоих</span>'+pl([c.best[0]])+'</div>';
   }
@@ -862,7 +863,10 @@ function venusWeeks(a,b,na,nb){
 function couplePaid(a,b){
   var c=coupleData(a,b), fa=fOf(a), fb=fOf(b), na=nm('A'), nb=nm('B');
   /* почему такой год */
-  var why=[na+': Солнце года в '+a.house+'-м доме — '+HOUSE_T[a.house-1]+'. Асцендент года '+SIGNS_IN[a.ascS]+' — '+ASC_T[a.ascS].charAt(0).toLowerCase()+ASC_T[a.ascS].slice(1), nb+': Солнце года в '+b.house+'-м доме — '+HOUSE_T[b.house-1]+'. Асцендент года '+SIGNS_IN[b.ascS]+' — '+ASC_T[b.ascS].charAt(0).toLowerCase()+ASC_T[b.ascS].slice(1)];
+  /* суть дома и асцендента — жирным: всё до первого двоеточия или точки */
+  var key=function(s){var m=s.match(/^([^:.]+)([:.])([\s\S]*)$/);return m?'**'+m[1]+'**'+m[2]+m[3]:'**'+s+'**'};
+  var whyOf=function(n,r){var asc=ASC_T[r.ascS].charAt(0).toLowerCase()+ASC_T[r.ascS].slice(1);return '**'+n+':** Солнце года в '+r.house+'-м доме — '+key(HOUSE_T[r.house-1])+(/[.]$/.test(HOUSE_T[r.house-1])?'':'.')+' Асцендент года '+SIGNS_IN[r.ascS]+' — '+key(asc)};
+  var why=[whyOf(na,a), whyOf(nb,b)];
   /* календарь пары */
   var SC=[1,0,0,0,2,-1,2,-1,1,0,1,-1], now=new Date(), cal=[], usedT={}, hardN={}, calmN=0;
   for(var i=0;i<12;i++){var d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+i,15)),sl=Astronomy.SunPosition(Astronomy.MakeTime(d)).elon,ha=houseIn(sl,chartAt(a,d)),hb=houseIn(sl,chartAt(b,d)),s=SC[ha-1]+SC[hb-1];
@@ -898,7 +902,7 @@ function couplePaid(a,b){
   var sec=function(t,body){return '<div class="sci"><span class="t">'+t+'</span>'+body+'</div>'};
   var h='<div class="arch" style="text-align:left"><div class="lbl" style="text-align:center">Полный соляр пары</div><h2 style="text-align:center">Ваш общий год</h2>'+
     '<div class="big" style="text-align:center">«'+esc(c.year.title)+'»</div>'+
-    sec('🧭 Почему у вас такой год',pl(why.concat(['Когда два таких года складываются, получается «'+c.year.title+'». Дальше — как прожить его так, чтобы он запомнился хорошим.'])))+
+    sec('🧭 Почему у вас такой год',pl(why.concat(['Когда два таких года складываются, получается **«'+c.year.title+'»**. Дальше — как прожить его так, чтобы он запомнился хорошим.'])))+
     sec('📅 Календарь пары на 12 месяцев','<p class="small muted">💞 — лучший месяц, 🌿 — ровный, ⚡ — напряжённый</p>'+cal.join(''))+
     sec('💗 Любовь в этом году',pl(love))+
     sec('🌹 Идеи свиданий именно для вас',pl(ideas))+
