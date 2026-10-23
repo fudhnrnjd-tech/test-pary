@@ -421,7 +421,7 @@ function render(){
       '<p class="muted small">Соляр — астрологический прогноз на ваш текущий год жизни, от дня рождения до следующего. Время рождения можно не указывать, но с ним точнее. Город можно ввести любой: начните печатать, появятся подсказки.</p>'+
       '<div class="field" style="border-color:var(--line);background:#f7f6fb"><label for="soloName">Как вас зовут</label><input type="text" id="soloName" maxlength="20" autocomplete="off" placeholder="Например, Юля" value="'+esc(S.a==='Партнёр 1'?'':S.a)+'"></div>'+
       '<datalist id="cityList">'+CITIES.map(function(c){return '<option value="'+esc(c[0])+'">'}).join('')+'</datalist>'+
-      solarfields('A').replace(/<label>[^<]*<\/label>/,'')+'<p class="small muted" id="serr" aria-live="polite"></p><button class="btn" id="go" disabled>Рассчитать соляр ✨</button></div>';
+      solarfields('A',true).replace(/<label>[^<]*<\/label>/,'')+'<p class="small muted" id="serr" aria-live="polite"></p><button class="btn" id="go" disabled>Рассчитать соляр ✨</button></div>';
   } else if(S.step==='solores'){
     var rs=solarCalc(S.solar.A);
     if(!rs){h=SOLAR_FAIL;}else
@@ -509,9 +509,10 @@ function citySuggest(ids,upd){
     });
   });
 }
-function solarfields(w){
-  var d=S.solar[w]||{};
-  return '<div class="field'+(w==='B'?' b':'')+'" style="gap:8px"><label>'+esc(nm(w))+'</label>'+
+function solarfields(w,noName){
+  var d=S.solar[w]||{}, ask=S.askNames&&!noName, real=w==='A'?S.a:S.b, def=w==='A'?'Партнёр 1':'Партнёр 2';
+  return '<div class="field'+(w==='B'?' b':'')+'" style="gap:8px"><label>'+(ask?(w==='A'?'Первый партнёр':'Второй партнёр'):esc(nm(w)))+'</label>'+
+    (ask?'<label for="nm'+w+'">Имя</label><input type="text" id="nm'+w+'" maxlength="20" autocomplete="off" placeholder="'+(w==='A'?'Например, Юля':'Например, Дима')+'" value="'+esc(real&&real!==def?real:'')+'">':'')+
     '<label for="bd'+w+'">Дата и время рождения</label><div class="two"><input type="text" class="dt" inputmode="numeric" maxlength="10" placeholder="ДД.ММ.ГГГГ" autocomplete="off" id="bd'+w+'" value="'+esc(d.date?d.date.split('-').reverse().join('.'):'')+'" aria-label="Дата рождения '+esc(nm(w))+'"><input type="time" id="bt'+w+'" value="'+esc(d.time||'')+'" aria-label="Время рождения '+esc(nm(w))+'"></div>'+
     '<label for="bc'+w+'">Город рождения</label><input type="text" id="bc'+w+'" autocomplete="off" placeholder="Начните вводить город" value="'+esc(d.city||'')+'"><div class="sug" id="sg_bc'+w+'"></div>'+
     '<label for="bn'+w+'">Где живёте сейчас</label><input type="text" id="bn'+w+'" autocomplete="off" placeholder="Начните вводить город" value="'+esc(d.now||'')+'"><div class="sug" id="sg_bn'+w+'"></div>'+
@@ -807,8 +808,8 @@ function bind(){
   }
   if(S.step==='solarform'){
     var busy=false;
-    var upd2=function(){['A','B'].forEach(function(w){S.solar[w]={date:dateIso('bd'+w),time:document.getElementById('bt'+w).value,city:document.getElementById('bc'+w).value,now:document.getElementById('bn'+w).value}});go.disabled=busy||!(S.solar.A.date&&S.solar.B.date)};
-    ['A','B'].forEach(function(w){['bd','bt','bc','bn'].forEach(function(p){var el=document.getElementById(p+w);el.oninput=el.onchange=upd2})}); upd2(); citySuggest(['bcA','bnA','bcB','bnB'],upd2);
+    var upd2=function(){['A','B'].forEach(function(w){var ni=document.getElementById('nm'+w);if(ni){var v=ni.value.trim();if(w==='A')S.a=v||'Партнёр 1';else S.b=v||'Партнёр 2'}S.solar[w]={date:dateIso('bd'+w),time:document.getElementById('bt'+w).value,city:document.getElementById('bc'+w).value,now:document.getElementById('bn'+w).value}});go.disabled=busy||!(S.solar.A.date&&S.solar.B.date)};
+    ['A','B'].forEach(function(w){['bd','bt','bc','bn','nm'].forEach(function(p){var el=document.getElementById(p+w);if(el)el.oninput=el.onchange=upd2})}); upd2(); citySuggest(['bcA','bnA','bcB','bnB'],upd2);
     go.onclick=function(){
       if(busy)return;
       var err=document.getElementById('serr'), names=[];
@@ -1244,7 +1245,7 @@ function demo(){
 }
 
 try{SAVED=JSON.parse(localStorage.getItem('tp_state')||'null'); if(!savedOk(SAVED)){SAVED=null;localStorage.removeItem('tp_state')}}catch(e){SAVED=null}
-if(!location.hash&&SAVED){S.step='resume';render()}else if(location.hash==='#otzyv'){S.fbOnly=true;S.step='fbintro';render()}else if(location.hash==='#demo'){demo()}else if(location.hash==='#solo'){S.step='solo';render()}else if(location.hash==='#solar'){S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
+if(!location.hash&&SAVED){S.step='resume';render()}else if(location.hash==='#otzyv'){S.fbOnly=true;S.step='fbintro';render()}else if(location.hash==='#demo'){demo()}else if(location.hash==='#solo'){S.step='solo';render()}else if(location.hash==='#solar'){S.askNames=true;S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
 </script>
 
 </body>
