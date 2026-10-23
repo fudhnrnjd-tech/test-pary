@@ -435,7 +435,7 @@ function render(){
   } else if(S.step==='solarfull'){
     var solo=S.fullSolo, fa=solarCalc(S.solar.A), fb=solo?null:solarCalc(S.solar.B);
     if(!fa||(!solo&&!fb)){h=SOLAR_FAIL;}else
-    h='<div class="card rep"><div class="scene-wrap">'+CATART.stars()+'</div>'+solarFullCard('A',fa)+(solo?'':solarFullCard('B',fb)+coupleBlock(coupleData(fa,fb),true))+
+    h='<div class="card rep"><div class="scene-wrap">'+CATART.stars()+'</div>'+solarFullCard('A',fa)+(solo?'':solarFullCard('B',fb)+couplePaid(fa,fb))+
       '<p class="small muted center">Соляр — развлекательный астрологический прогноз на год: положение планет в момент, когда Солнце возвращается в точку вашего рождения. Дома — по системе Плацидуса, как в большинстве астрологических сервисов (за полярным кругом — по знакам).</p><button class="btn" id="go">'+(solo?'Назад':'Дальше')+'</button></div>';
   } else if(S.step==='fbintro'){
     h='<div class="card center">'+CATS+'<h2>Помогите сделать тест лучше</h2><p class="muted">'+(S.fbOnly?'Вы уже прошли тест вдвоём — спасибо! ':'')+'7 коротких вопросов про сам тест. Ваши ответы на тест мы не видим и не спрашиваем.</p><button class="btn" id="go">Ответить</button></div>';
@@ -824,7 +824,80 @@ function coupleBlock(c,full){
       '<div class="sci"><span class="t">💞 Лучший месяц для вас двоих</span>'+pl([c.best[0]])+'</div>';
   }
   h+='<div class="sci" style="background:#fff4ec;border-color:#ffd9bf"><span class="t">⭐ Главный совет года</span><p>'+esc(c.year.advice)+'</p></div>';
-  if(!full)h+='<p class="small muted" style="text-align:center">В полном соляре — все риски и даты, лучшие месяцы года и как поддержать друг друга.</p>';
+  if(!full)h+='<div class="sci"><span class="t">🔒 В полном соляре пары</span><p class="small">📅 Календарь пары на 12 месяцев: какой месяц лучший, какой напряжённый и что делать вдвоём<br>💗 Язык любви каждого в этом году и идеи свиданий именно для вас<br>✨ Самые романтичные недели года с датами<br>🎬 Сценарий главной ссоры года: как начнётся и как помириться<br>💰 Деньги вдвоём · 🤝 Как поддержать друг друга · ⭐ План на год</p></div>';
+  return h+'</div>';
+}
+
+/* ===== ПЛАТНАЯ ЧАСТЬ ВЫВОДА ПАРЫ: только то, чего нет в бесплатной ===== */
+var LOVE_LANG=['через поступки и приключения: смелые жесты, спонтанные идеи, «поехали прямо сейчас»','через заботу и надёжность: вкусный ужин, подарки, помощь делом','через слова и общение: комплименты, переписки, разговоры до ночи','через нежность и время вдвоём: объятия, внимание к настроению, тихие вечера'];
+var MARS_WANT=['драйва и инициативы','стабильности и понятных шагов','новизны и свободы','близости и глубины'];
+var DATE_IDEA=['активное свидание: картинг, скалодром или квест','гастрономический вечер: ресторан, дегустация или ужин, приготовленный вместе','стендап, лекция или прогулка по новому району с долгими разговорами','домашний вечер: плед, фильм и любимая еда','красивый выход: театр, концерт или ужин с дресс-кодом','полезное вместе: мастер-класс, спа или общий проект','красивое место: выставка, фотосессия вдвоём, ресторан с видом','что-то необычное: ночная прогулка, сюрприз с секретом, откровенный разговор','поездка на выходные в новый город','спокойный ужин, на котором вы вместе строите планы на год','необычный досуг: настолки, VR, вечеринка с друзьями','романтика у воды: закат, музыка, кино под пледом'];
+var SAME_TIP=['оба думаете о себе — оставьте время и на «мы»','оба про деньги — составьте общий план трат','у обоих много суеты — говорите не только о делах','обоих тянет домой — отличное время для уюта и гостей','месяц романтики для обоих — не упустите его','оба в работе — делите быт и следите за отдыхом','месяц пары — время для важных разговоров и решений','у обоих глубокий месяц — будьте бережнее друг к другу','обоих тянет в дорогу — самое время для поездки','оба в карьере — поддерживайте, а не соревнуйтесь','месяц друзей — выбирайтесь куда-нибудь компанией','обоим нужен отдых — снизьте темп'];
+var HARD_TIP={6:'много работы — возьмите на себя часть быта',8:'непростой месяц — будьте рядом и не давите',12:'нужен отдых — не обижайтесь на уединение'};
+var FIGHT_T={
+m7:['спор на ровном месте: кто что сказал и каким тоном','желание, чтобы с мнением считались','остановитесь и скажите, чего на самом деле хочется. И правило на год: не спорим в переписке'],
+s7:['«ты никогда…» и «ты всегда…» — накопившиеся претензии','страх, что отношения не выдержат нагрузки','раз в неделю — короткий разбор: что было хорошо, что напрягло. Так претензии не копятся'],
+m2:['чья-то покупка или трата «без спроса»','разное чувство безопасности: одному спокойнее копить, другому — тратить на радость','у каждого свои деньги на личное плюс общий фонд на большие цели'],
+m4:['посуда, ремонт, гости, родители','ощущение, что дома нет своего места и своего слова','поделите дела и зоны дома, а с родными договаривайтесь вместе'],
+vm:['один хочет романтики, другой — «давай просто отдохнём»','разные ожидания от близости','спрашивайте прямо и выбирайте, как провести вечер, по очереди'],
+mo:['один молчит, другой додумывает худшее','разный способ переживать стресс','договоритесь о фразе «мне нужно время» — она снимает половину ссор'],
+none:['мелочи на фоне усталости','нехватка времени друг на друга','один вечер в неделю только для вас двоих, без дел и телефонов']};
+function venusWeeks(a,b,na,nb){
+  var start=new Date(), per=[];
+  [[a,na],[b,nb]].forEach(function(p){var on=null;
+    for(var i=0;i<=365;i+=1){var d=new Date(start.getTime()+i*864e5),h=houseIn(lonOf('Venus',Astronomy.MakeTime(d)),p[0]),inn=(h===5||h===7);
+      if(inn&&!on)on={from:d,h:h}; if((!inn||i===365)&&on){per.push({who:p[1],from:on.from,to:d,h:on.h});on=null}}});
+  per.sort(function(x,y){return x.from-y.from});
+  return per.slice(0,5).map(function(p){var lc=function(d){return utcToLocal(a.nc,d.getTime())};return dShort(lc(p.from))+' — '+dShort(lc(p.to))+' · '+p.who+': Венера в доме '+(p.h===5?'любви':'партнёрства')+'. Романтика и внимание сейчас работают сильнее обычного.'});
+}
+function couplePaid(a,b){
+  var c=coupleData(a,b), fa=fOf(a), fb=fOf(b), na=nm('A'), nb=nm('B');
+  /* почему такой год */
+  var why=[na+': Солнце года в '+a.house+'-м доме — '+HOUSE_T[a.house-1]+'. Асцендент года '+SIGNS_IN[a.ascS]+' — '+ASC_T[a.ascS].charAt(0).toLowerCase()+ASC_T[a.ascS].slice(1), nb+': Солнце года в '+b.house+'-м доме — '+HOUSE_T[b.house-1]+'. Асцендент года '+SIGNS_IN[b.ascS]+' — '+ASC_T[b.ascS].charAt(0).toLowerCase()+ASC_T[b.ascS].slice(1)];
+  /* календарь пары */
+  var SC=[1,0,0,0,2,-1,2,-1,1,0,1,-1], now=new Date(), cal=[];
+  for(var i=0;i<12;i++){var d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+i,15)),sl=Astronomy.SunPosition(Astronomy.MakeTime(d)).elon,ha=houseIn(sl,a),hb=houseIn(sl,b),s=SC[ha-1]+SC[hb-1];
+    var tag=s>=2?'💞':s<=-1?'⚡':'🌿', tip;
+    if(ha===hb)tip=cap(SAME_TIP[ha-1]);
+    else if(HARD_TIP[ha]||HARD_TIP[hb]){var hh=HARD_TIP[ha]?ha:hb;tip=(hh===ha?na:nb)+': '+HARD_TIP[hh]}
+    else if(ha===5||ha===7||hb===5||hb===7){var lh=(ha===5||ha===7)?ha:hb;tip=(lh===ha?na:nb)+': месяц про '+(lh===5?'любовь — ждёт внимания и романтики':'партнёрство — хорошее время поговорить о будущем')}
+    else tip=cap(ACT_T[(SC[ha-1]>=SC[hb-1]?ha:hb)-1]);
+    cal.push('<p class="small"><b>'+tag+' '+esc(MON_N[d.getUTCMonth()]+(d.getUTCFullYear()!==now.getUTCFullYear()?' '+d.getUTCFullYear():''))+'</b> · '+esc(na)+' — '+esc(MONTH_T[ha-1].split(':')[0])+', '+esc(nb)+' — '+esc(MONTH_T[hb-1].split(':')[0])+'. '+esc(tip)+'.</p>');}
+  /* любовь */
+  var va=signOf(fa.pos.Venus), vb=signOf(fb.pos.Venus), ma=signOf(fa.pos.Mars), mb=signOf(fb.pos.Mars);
+  var love=[na+' в этом году чувствует любовь '+LOVE_LANG[va%4]+'. Чего хочется: '+MARS_WANT[ma%4]+'.', nb+' в этом году чувствует любовь '+LOVE_LANG[vb%4]+'. Чего хочется: '+MARS_WANT[mb%4]+'.'];
+  love.push(va%4===vb%4?'Языки любви у вас совпадают — то, что радует вас, порадует и партнёра.':'Языки любви разные: дарите партнёру то, что нужно ему, а не то, что нравится вам самим.');
+  /* имена — только в именительном падеже */
+  var ideas=[na+' будет в восторге — '+DATE_IDEA[va]+'.', nb+' будет в восторге — '+DATE_IDEA[vb]+'.'];
+  /* сценарий ссоры */
+  var ids=[];[[fa,a],[fb,b]].forEach(function(p){var mh=houseIn(p[0].pos.Mars,p[1]),sh=houseIn(p[0].pos.Saturn,p[1]);if(mh===7)ids.push('m7');if(sh===7)ids.push('s7');if(mh===2||mh===8)ids.push('m2');if(mh===4)ids.push('m4')});
+  var k1=aspectKind(fa.pos.Venus,fb.pos.Mars),k2=aspectKind(fb.pos.Venus,fa.pos.Mars); if(k1==='square'||k2==='square')ids.push('vm'); if(elemRel(signOf(fa.pos.Moon),signOf(fb.pos.Moon))==='diff')ids.push('mo');
+  var fid=['m7','s7','vm','m2','m4','mo'].filter(function(x){return ids.indexOf(x)>=0})[0]||'none', F=FIGHT_T[fid];
+  /* деньги */
+  var money=[];[[na,fa,a],[nb,fb,b]].forEach(function(p){var j=houseIn(p[1].pos.Jupiter,p[2]),s=houseIn(p[1].pos.Saturn,p[2]),v=houseIn(p[1].pos.Venus,p[2]);
+    if(j===2||j===8)money.push(p[0]+': Юпитер в денежном доме — шанс заработать больше обычного.');
+    if(s===2||s===8)money.push(p[0]+': Сатурн в денежном доме — год экономии и порядка в финансах.');
+    if(p[2].house===2||p[2].house===8)money.push(p[0]+': деньги — одна из главных тем года.');
+    if(v===2)money.push(p[0]+': тянет тратить на красивое и приятное.');});
+  var anyS=money.some(function(m){return m.indexOf('Сатурн')>=0}), anyJ=money.some(function(m){return m.indexOf('Юпитер')>=0});
+  money.push(anyS?'Совет: общая финансовая подушка в этом году — лучший подарок друг другу.':anyJ?'Совет: удачный год для крупной общей покупки — присмотритесь заранее.':'Деньги в этом году не главная тема. Хорошее время спокойно копить на общую цель.');
+  /* план */
+  var mr=elemRel(signOf(fa.pos.Moon),signOf(fb.pos.Moon)), bestRow=c.best[1]||c.best[0];
+  var plan=[(mr==='diff'?'Договоритесь о фразе-сигнале «мне нужно время», чтобы паузы не превращались в обиды.':'Раз в неделю — вечер без телефонов: вам легко быть на одной волне, не теряйте это.'), bestRow, 'Свидание в стиле обоих: '+DATE_IDEA[va].split(':')[0]+' — и в ответ '+DATE_IDEA[vb].split(':')[0]+'.'];
+  var vw=venusWeeks(a,b,na,nb);
+  var sec=function(t,body){return '<div class="sci"><span class="t">'+t+'</span>'+body+'</div>'};
+  var h='<div class="arch" style="text-align:left"><div class="lbl" style="text-align:center">Полный соляр пары</div><h2 style="text-align:center">Ваш общий год</h2>'+
+    '<div class="big" style="text-align:center">«'+esc(c.year.title)+'»</div>'+
+    sec('🧭 Почему у вас такой год',pl(why))+
+    sec('📅 Календарь пары на 12 месяцев','<p class="small muted">💞 — лучший месяц, 🌿 — ровный, ⚡ — напряжённый</p>'+cal.join(''))+
+    sec('💗 Любовь в этом году',pl(love))+
+    sec('🌹 Идеи свиданий именно для вас',pl(ideas))+
+    sec('✨ Самые романтичные недели',pl(vw.length?vw:['В ближайший год Венера не заходит в ваши дома любви — романтику придётся создавать самим, и это тоже прекрасно.']))+
+    (c.risk.length>1?sec('⚡ Ещё где тонко',pl(c.risk.slice(1,5))):'')+
+    sec('🎬 Главная ссора года — и как её избежать','<p class="small"><b>Как начнётся:</b> '+esc(F[0])+'.</p><p class="small"><b>Что на самом деле за ней:</b> '+esc(F[1])+'.</p><p class="small"><b>Как помириться:</b> '+esc(F[2])+'.</p>')+
+    sec('💰 Деньги вдвоём',pl(money))+
+    sec('🤝 Как поддержать друг друга',pl(c.support))+
+    '<div class="sci" style="background:#fff4ec;border-color:#ffd9bf"><span class="t">⭐ План на год из трёх шагов</span>'+plan.map(function(p,i){return '<p class="small"><b>'+(i+1)+'.</b> '+esc(p)+'</p>'}).join('')+'</div>';
   return h+'</div>';
 }
 
@@ -1341,7 +1414,7 @@ function demo(){
 }
 
 try{SAVED=JSON.parse(localStorage.getItem('tp_state')||'null'); if(!savedOk(SAVED)){SAVED=null;localStorage.removeItem('tp_state')}}catch(e){SAVED=null}
-if(!location.hash&&SAVED){S.step='resume';render()}else if(location.hash==='#otzyv'){S.fbOnly=true;S.step='fbintro';render()}else if(location.hash==='#demo'){demo()}else if(location.hash==='#solo'){S.step='solo';render()}else if(location.hash==='#solar'){S.askNames=true;S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
+if(!location.hash&&SAVED){S.step='resume';render()}else if(location.hash==='#otzyv'){S.fbOnly=true;S.step='fbintro';render()}else if(location.hash==='#demo'){demo()}else if(location.hash==='#solo'){S.step='solo';render()}else if(location.hash==='#solardemo'){/* пример соляра пары Юли и Димы */S.a='Юля';S.b='Дима';S.solar={want:true,A:{date:'1996-04-12',time:'08:30',city:'Москва',now:'Москва'},B:{date:'1993-11-03',time:'',city:'Самара',now:'Москва'}};S.step=window.Astronomy?'solarres':'solarsoon';render()}else if(location.hash==='#solar'){S.askNames=true;S.a='Партнёр 1';S.b='Партнёр 2';S.solar.want=true;S.step=window.Astronomy?'solarform':'solarsoon';render()}else{render()}
 </script>
 
 </body>
