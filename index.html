@@ -605,9 +605,16 @@ function placidus(ramc,lat,eps){
   cusps[6]=sNorm(asc+180);cusps[7]=sNorm(c2+180);cusps[8]=sNorm(c3+180);cusps[9]=mc;cusps[10]=c11;cusps[11]=c12;
   return cusps;
 }
+function chartAt(r,date){
+  if(date>=r.t.date&&date<r.end)return r;
+  r._at=r._at||{}; var k=null;
+  for(var key in r._at){var c=r._at[key];if(c&&date>=c.t.date&&date<c.end){k=c;break}}
+  if(k)return k; var c2=solarCalc(r.inp,date,true); if(c2)r._at[c2.t.date.getTime()]=c2; return c2||r;
+}
 function houseIn(l,r){if(!r.cusps)return ((Math.floor(sNorm(l)/30)-r.ascS+12)%12)+1;
   for(var i=0;i<12;i++){var a=r.cusps[i],b=r.cusps[(i+1)%12],x=sNorm(l-a);if(x<sNorm(b-a))return i+1}return 1}
-function solarCalc(d){
+/* at — момент, на который нужен соляр (по умолчанию сейчас); exact — без сдвига на наступающий год */
+function solarCalc(d,at,exact){
   if(!window.Astronomy||!d||!d.date)return null;
   /* координаты найденных городов храним вместе с ответом: после перезагрузки GEO пустой */
   var bc=d.geo||cityBy(d.city), nc=d.nowGeo||cityFind(d.now)||bc;
@@ -619,22 +626,25 @@ function solarCalc(d){
   var s0=Math.floor(Astronomy.SunPosition(Astronomy.MakeTime(d0)).elon/30), s1=Math.floor(Astronomy.SunPosition(Astronomy.MakeTime(d1)).elon/30);
   var edge=!d.time&&s0!==s1?[s0,s1]:null;
   /* начало солярного года — последнее уже наступившее возвращение Солнца, а не полночь дня рождения */
-  var now=new Date(), y=now.getUTCFullYear();
+  var now=at||new Date(), y=now.getUTCFullYear();
   var t=Astronomy.SearchSunLongitude(natal, Astronomy.MakeTime(new Date(Date.UTC(y-1,+p[1]-1,+p[2])-5*864e5)), 20);
   if(!t)return null;
   var t2=Astronomy.SearchSunLongitude(natal, t.AddDays(360), 20); if(t2&&t2.date<=now)t=t2;
+  /* если до дня рождения меньше двух месяцев — показываем наступающий солярный год */
+  var tn=Astronomy.SearchSunLongitude(natal, t.AddDays(360), 20), upcoming=false;
+  if(!exact&&!at&&tn&&tn.date-now<60*864e5){t=tn;upcoming=true;tn=Astronomy.SearchSunLongitude(natal, t.AddDays(360), 20);}
   var ramc=sNorm(Astronomy.SiderealTime(t)*15+nc[2]), eps=23.4393*Math.PI/180, r=ramc*Math.PI/180, f=nc[1]*Math.PI/180;
   var asc=sNorm(Math.atan2(Math.cos(r),-(Math.sin(r)*Math.cos(eps)+Math.tan(f)*Math.sin(eps)))*180/Math.PI);
   var sun=Astronomy.SunPosition(t).elon, moon=Astronomy.EclipticGeoMoon(t).lon, ven=Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body.Venus,t,true)).elon;
   var ascS=Math.floor(asc/30), sunS=Math.floor(sun/30), cusps=placidus(ramc,nc[1],23.4393);
   var local=utcToLocal(nc,t.date.getTime());
-  return {start:local, ascS:ascS, cusps:cusps, house:houseIn(sun,{cusps:cusps,ascS:ascS}), moonS:Math.floor(moon/30), venS:Math.floor(ven/30), sunS:sunS, exact:!!d.time, city:nc[0], t:t, nc:nc, edge:edge};
+  return {start:local, ascS:ascS, cusps:cusps, house:houseIn(sun,{cusps:cusps,ascS:ascS}), moonS:Math.floor(moon/30), venS:Math.floor(ven/30), sunS:sunS, exact:!!d.time, city:nc[0], t:t, nc:nc, edge:edge, upcoming:upcoming, end:tn?tn.date:new Date(t.date.getTime()+365.2422*864e5), inp:d};
 }
 function solarDate(dt){var m=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];return dt.getUTCDate()+' '+m[dt.getUTCMonth()]+' '+dt.getUTCFullYear()+' в '+('0'+dt.getUTCHours()).slice(-2)+':'+('0'+dt.getUTCMinutes()).slice(-2)}
 function solarCard(w,res){
   var cls=w==='A'?'a':'b';
   return '<div class="sec"><div class="sechead" style="padding-top:14px"><h3>'+esc(nm(w))+'</h3><span class="chip '+(w==='A'?'grumpy':'ok')+'">Солнце '+esc(SIGNS_IN[res.sunS])+'</span></div>'+
-    '<p class="small muted">Ваш солярный год начался '+esc(solarDate(res.start))+' ('+esc(res.city)+')'+'.</p>'+(res.exact?'':'<p class="small note">⏰ Время рождения не указано, поэтому мы посчитали на полдень. Асцендент, дома и выводы могут заметно отличаться от точного расчёта — укажите время, хотя бы примерное.</p>')+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
+    '<p class="small muted">'+(res.upcoming?'Ваш день рождения совсем скоро, поэтому показываем прогноз на новый солярный год: он начнётся ':'Ваш солярный год начался ')+esc(solarDate(res.start))+' ('+esc(res.city)+')'+'.</p>'+(res.exact?'':'<p class="small note">⏰ Время рождения не указано, поэтому мы посчитали на полдень. Асцендент, дома и выводы могут заметно отличаться от точного расчёта — укажите время, хотя бы примерное.</p>')+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
     '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+esc(ASC_T[res.ascS])+'</p>'+
     '<div class="sci"><span class="t">☀️ Главная сфера года · '+res.house+'-й дом</span><p>'+esc(HOUSE_T[res.house-1].charAt(0).toUpperCase()+HOUSE_T[res.house-1].slice(1))+'.</p></div>'+
     '<p class="small"><b>🌙 Эмоции:</b> Луна года '+esc(SIGNS_IN[res.moonS])+' — '+esc(MOON_T[res.moonS])+'.</p>'+
@@ -703,7 +713,7 @@ function solarFull(r){
 }
 function solarFullCard(w,res){
   var f=fOf(res), h='<div class="sec"><div class="sechead" style="padding-top:14px"><h3>'+esc(nm(w))+'</h3><span class="chip '+(w==='A'?'grumpy':'ok')+'">Солнце '+esc(SIGNS_IN[res.sunS])+'</span></div>'+
-    '<p class="small muted">Солярный год: с '+esc(solarDate(res.start).replace(/ в (\d\d:\d\d)$/,', $1,'))+' до следующего дня рождения ('+esc(res.city)+')'+'.</p>'+(res.exact?'':'<p class="small note">⏰ Время рождения не указано, поэтому мы посчитали на полдень. Асцендент, дома и выводы могут заметно отличаться от точного расчёта — укажите время, хотя бы примерное.</p>')+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
+    '<p class="small muted">'+(res.upcoming?'День рождения совсем скоро, поэтому это прогноз на новый солярный год. ':'')+'Солярный год: с '+esc(solarDate(res.start).replace(/ в (\d\d:\d\d)$/,', $1,'))+' до следующего дня рождения ('+esc(res.city)+')'+'.</p>'+(res.exact?'':'<p class="small note">⏰ Время рождения не указано, поэтому мы посчитали на полдень. Асцендент, дома и выводы могут заметно отличаться от точного расчёта — укажите время, хотя бы примерное.</p>')+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
     '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+esc(ASC_T[res.ascS])+'</p>'+
     '<div class="lbl" style="margin-top:6px">Планеты года</div>';
   PL.forEach(function(p){var hs=houseIn(f.pos[p[0]],res), txt=p[0]==='Sun'?HOUSE_T[hs-1].charAt(0).toUpperCase()+HOUSE_T[hs-1].slice(1)+'.':PL_T[p[0]][hs-1];
@@ -801,7 +811,7 @@ function coupleData(a,b){
   risk.sort(function(x,y){return x[0]-y[0]});
   /* месяцы */
   var SC=[1,0,0,0,2,-1,2,-1,1,0,1,-1], now=new Date(), rows=[];
-  for(var i=0;i<12;i++){var d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+i,15)),sl=Astronomy.SunPosition(Astronomy.MakeTime(d)).elon,xa=houseIn(sl,a),xb=houseIn(sl,b);rows.push({d:d,s:SC[xa-1]+SC[xb-1],ha:xa,hb:xb})}
+  for(var i=0;i<12;i++){var d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+i,15)),sl=Astronomy.SunPosition(Astronomy.MakeTime(d)).elon,xa=houseIn(sl,chartAt(a,d)),xb=houseIn(sl,chartAt(b,d));rows.push({d:d,s:SC[xa-1]+SC[xb-1],ha:xa,hb:xb})}
   var mname=function(r){var s=MON_N[r.d.getUTCMonth()]+(r.d.getUTCFullYear()!==now.getUTCFullYear()?' '+r.d.getUTCFullYear():'');return s};
   var used={};
   var best=rows.slice().sort(function(x,y){return y.s-x.s}).slice(0,3).sort(function(x,y){return x.d-y.d}).map(function(r){var h1=SC[r.ha-1]>=SC[r.hb-1]?r.ha:r.hb, h2=h1===r.ha?r.hb:r.ha, h=used[h1]&&!used[h2]?h2:h1; used[h]=1; return mname(r)+': '+ACT_T[h-1]+'.'});
@@ -845,7 +855,7 @@ none:['мелочи на фоне усталости','нехватка врем
 function venusWeeks(a,b,na,nb){
   var start=new Date(), per=[];
   [[a,na],[b,nb]].forEach(function(p){var on=null;
-    for(var i=0;i<=365;i+=1){var d=new Date(start.getTime()+i*864e5),h=houseIn(lonOf('Venus',Astronomy.MakeTime(d)),p[0]),inn=(h===5||h===7);
+    for(var i=0;i<=365;i+=1){var d=new Date(start.getTime()+i*864e5),h=houseIn(lonOf('Venus',Astronomy.MakeTime(d)),chartAt(p[0],d)),inn=(h===5||h===7);
       if(inn&&!on)on={from:d,h:h}; if((!inn||i===365)&&on){per.push({who:p[1],from:on.from,to:d,h:on.h});on=null}}});
   per.sort(function(x,y){return x.from-y.from});
   return per.slice(0,5).map(function(p){var lc=function(d){return utcToLocal(a.nc,d.getTime())};return dShort(lc(p.from))+' — '+dShort(lc(p.to))+' · '+p.who+': Венера в доме '+(p.h===5?'любви':'партнёрства')+'. Романтика и внимание сейчас работают сильнее обычного.'});
@@ -856,7 +866,7 @@ function couplePaid(a,b){
   var why=[na+': Солнце года в '+a.house+'-м доме — '+HOUSE_T[a.house-1]+'. Асцендент года '+SIGNS_IN[a.ascS]+' — '+ASC_T[a.ascS].charAt(0).toLowerCase()+ASC_T[a.ascS].slice(1), nb+': Солнце года в '+b.house+'-м доме — '+HOUSE_T[b.house-1]+'. Асцендент года '+SIGNS_IN[b.ascS]+' — '+ASC_T[b.ascS].charAt(0).toLowerCase()+ASC_T[b.ascS].slice(1)];
   /* календарь пары */
   var SC=[1,0,0,0,2,-1,2,-1,1,0,1,-1], now=new Date(), cal=[];
-  for(var i=0;i<12;i++){var d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+i,15)),sl=Astronomy.SunPosition(Astronomy.MakeTime(d)).elon,ha=houseIn(sl,a),hb=houseIn(sl,b),s=SC[ha-1]+SC[hb-1];
+  for(var i=0;i<12;i++){var d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+i,15)),sl=Astronomy.SunPosition(Astronomy.MakeTime(d)).elon,ha=houseIn(sl,chartAt(a,d)),hb=houseIn(sl,chartAt(b,d)),s=SC[ha-1]+SC[hb-1];
     var tag=s>=2?'💞':s<=-1?'⚡':'🌿', tip;
     if(ha===hb)tip=cap(SAME_TIP[ha-1]);
     else if(HARD_TIP[ha]||HARD_TIP[hb]){var hh=HARD_TIP[ha]?ha:hb;tip=(hh===ha?na:nb)+': '+HARD_TIP[hh]}
