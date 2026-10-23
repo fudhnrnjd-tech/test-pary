@@ -85,6 +85,7 @@ input[type=time],input[type=month]{min-height:42px;-webkit-appearance:none;appea
 .hero-cats{width:100%;max-width:340px;aspect-ratio:16/9;object-fit:cover;border-radius:20px;margin:0 auto;display:block}
 .art{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#efe9e2}
 .center{text-align:center}
+.mlist{display:grid;gap:4px}
 .note{font-size:.86rem;padding:12px 14px;border-radius:16px;background:var(--b-soft);color:var(--muted)}
 pre.out{white-space:pre-wrap;word-break:break-word;font-size:.8rem;background:#f7f6fb;padding:12px;border-radius:14px;max-height:220px;overflow:auto;margin:0}
 
@@ -175,6 +176,7 @@ input[type=date],input[type=time]{font:inherit;border:0;background:#fff;border-r
 <div class="app" id="app"></div>
 
 <script src="astronomy.browser.min.js"></script>
+<script src="tz.js"></script>
 <script>
 /* Иллюстрации Мишани и Кнопки, рисуются кодом (SVG). Сцены: hero, cuddle, window, makeup, backs, suitcase */
 var CATART=(function(){
@@ -355,7 +357,7 @@ function navrow(canBack){return '<div class="row">'+(canBack?'<button class="btn
 
 var SAVED=null, STATE_V=10;
 /* Сохраняем только шаги основного теста. После «done» стираем: ответы и даты рождения не должны достаться следующей паре на этом телефоне */
-var STEPS=['jointintro','joint','hand','q','revealintro','reveal','report','solar','solarform','solarres','solarsoon','fbintro','fb'];
+var STEPS=['jointintro','joint','hand','q','revealintro','reveal','report','solar','solarform','solarres','solarfull','solarsoon','fbintro','fb'];
 function saveState(){
   if(S.fbOnly||S.demo||location.hash)return;
   try{
@@ -425,11 +427,16 @@ function render(){
     if(!rs){h=SOLAR_FAIL;}else
     h='<div class="card rep"><div class="scene-wrap">'+CATART.stars()+'</div>'+solarCard('A',rs)+
       '<p class="small muted center">Соляр — развлекательный астрологический прогноз. Он рассчитан по положению планет в момент, когда Солнце в этом году возвращается в точку вашего рождения. Поэтому Луна и Венера здесь — из карты года и могут отличаться от натальных.</p>'+
-      '<button class="btn" id="go">Посчитать для другого человека</button></div>';
+      '<button class="btn" id="full">Открыть полный соляр ✨</button><button class="btn ghost" id="go">Посчитать для другого человека</button></div>';
   } else if(S.step==='solarres'){
     var ra=solarCalc(S.solar.A), rb=solarCalc(S.solar.B);
     if(!ra||!rb){h=SOLAR_FAIL;}else
-    h='<div class="card rep"><div class="scene-wrap">'+CATART.stars()+'</div>'+solarCouple(ra,rb)+solarCard('A',ra)+solarCard('B',rb)+'<p class="small muted center">Соляр — развлекательный астрологический прогноз. Он рассчитан по положению планет в момент, когда Солнце в этом году возвращается в точку вашего рождения. Поэтому Луна и Венера здесь — из карты года и могут отличаться от натальных.</p><button class="btn" id="go">Дальше</button></div>';
+    h='<div class="card rep"><div class="scene-wrap">'+CATART.stars()+'</div>'+solarCouple(ra,rb)+solarCard('A',ra)+solarCard('B',rb)+'<p class="small muted center">Соляр — развлекательный астрологический прогноз. Он рассчитан по положению планет в момент, когда Солнце в этом году возвращается в точку вашего рождения. Поэтому Луна и Венера здесь — из карты года и могут отличаться от натальных.</p><button class="btn" id="full">Открыть полный соляр ✨</button><button class="btn ghost" id="go">Дальше</button></div>';
+  } else if(S.step==='solarfull'){
+    var solo=S.fullSolo, fa=solarCalc(S.solar.A), fb=solo?null:solarCalc(S.solar.B);
+    if(!fa||(!solo&&!fb)){h=SOLAR_FAIL;}else
+    h='<div class="card rep"><div class="scene-wrap">'+CATART.stars()+'</div>'+(solo?'':solarCoupleFull(fa,fb))+solarFullCard('A',fa)+(solo?'':solarFullCard('B',fb))+
+      '<p class="small muted center">Соляр — развлекательный астрологический прогноз на год: положение планет в момент, когда Солнце возвращается в точку вашего рождения. Дома — по системе Плацидуса, как в большинстве астрологических сервисов (за полярным кругом — по знакам).</p><button class="btn" id="go">'+(solo?'Назад':'Дальше')+'</button></div>';
   } else if(S.step==='fbintro'){
     h='<div class="card center">'+CATS+'<h2>Помогите сделать тест лучше</h2><p class="muted">'+(S.fbOnly?'Вы уже прошли тест вдвоём — спасибо! ':'')+'7 коротких вопросов про сам тест. Ваши ответы на тест мы не видим и не спрашиваем.</p><button class="btn" id="go">Ответить</button></div>';
   } else if(S.step==='fb'){
@@ -582,13 +589,34 @@ function geocode(name){
 var SOLAR_FAIL='<div class="card center">'+'<h2>Не получилось посчитать 😿</h2><p class="muted">Похоже, не загрузился модуль расчёта. Обновите страницу и попробуйте ещё раз.</p><button class="btn" id="go">Дальше</button></div>';
 /* Nominatim просит не чаще 1 запроса в секунду — ищем города по очереди */
 function geoSeq(list){return list.reduce(function(p,n,i){return p.then(function(r){return (i?new Promise(function(s){setTimeout(s,1100)}):Promise.resolve()).then(function(){return geocode(n)}).then(function(c){r.push(c);return r})})},Promise.resolve([]))}
+/* Дома по Плацидусу (как в большинстве астросервисов). За полярным кругом Плацидус не строится — тогда дома по знакам */
+function placidus(ramc,lat,eps){
+  var R=Math.PI/180, f=lat*R, e=eps*R, cusps=new Array(12);
+  var lamOf=function(ra){return sNorm(Math.atan2(Math.sin(ra*R),Math.cos(ra*R)*Math.cos(e))/R)};
+  var asc=sNorm(Math.atan2(Math.cos(ramc*R),-(Math.sin(ramc*R)*Math.cos(e)+Math.tan(f)*Math.sin(e)))/R), mc=lamOf(ramc);
+  var cusp=function(k,night){var ra=ramc+(night?180:0)+(night?-1:1)*k*30, lam;
+    for(var i=0;i<30;i++){lam=lamOf(ra);var dec=Math.asin(Math.sin(e)*Math.sin(lam*R)),x=Math.tan(f)*Math.tan(dec);if(Math.abs(x)>=1)return null;
+      var ad=Math.asin(x)/R, sa=night?90-ad:90+ad, nra=ramc+(night?180-k*sa/3:k*sa/3); if(Math.abs(((nra-ra)%360+540)%360-180)<1e-7){ra=nra;break} ra=nra;}
+    return lamOf(ra)};
+  var c11=cusp(1,false),c12=cusp(2,false),c3=cusp(1,true),c2=cusp(2,true);
+  if(c11==null||c12==null||c2==null||c3==null)return null;
+  cusps[0]=asc;cusps[1]=c2;cusps[2]=c3;cusps[3]=sNorm(mc+180);cusps[4]=sNorm(c11+180);cusps[5]=sNorm(c12+180);
+  cusps[6]=sNorm(asc+180);cusps[7]=sNorm(c2+180);cusps[8]=sNorm(c3+180);cusps[9]=mc;cusps[10]=c11;cusps[11]=c12;
+  return cusps;
+}
+function houseIn(l,r){if(!r.cusps)return ((Math.floor(sNorm(l)/30)-r.ascS+12)%12)+1;
+  for(var i=0;i<12;i++){var a=r.cusps[i],b=r.cusps[(i+1)%12],x=sNorm(l-a);if(x<sNorm(b-a))return i+1}return 1}
 function solarCalc(d){
   if(!window.Astronomy||!d||!d.date)return null;
   /* координаты найденных городов храним вместе с ответом: после перезагрузки GEO пустой */
   var bc=d.geo||cityBy(d.city), nc=d.nowGeo||cityFind(d.now)||bc;
   var p=d.date.split('-'), tm=(d.time||'12:00').split(':');
-  var birth=new Date(Date.UTC(+p[0],+p[1]-1,+p[2],+tm[0]-bc[3],+tm[1]));
+  var birth=new Date(localToUtc(bc,Date.UTC(+p[0],+p[1]-1,+p[2],+tm[0],+tm[1])));
   var natal=Astronomy.SunPosition(Astronomy.MakeTime(birth)).elon;
+  /* день смены знака: без времени рождения знак Солнца не определить точно */
+  var d0=new Date(localToUtc(bc,Date.UTC(+p[0],+p[1]-1,+p[2],0,0))), d1=new Date(d0.getTime()+864e5-6e4);
+  var s0=Math.floor(Astronomy.SunPosition(Astronomy.MakeTime(d0)).elon/30), s1=Math.floor(Astronomy.SunPosition(Astronomy.MakeTime(d1)).elon/30);
+  var edge=!d.time&&s0!==s1?[s0,s1]:null;
   /* начало солярного года — последнее уже наступившее возвращение Солнца, а не полночь дня рождения */
   var now=new Date(), y=now.getUTCFullYear();
   var t=Astronomy.SearchSunLongitude(natal, Astronomy.MakeTime(new Date(Date.UTC(y-1,+p[1]-1,+p[2])-5*864e5)), 20);
@@ -597,15 +625,15 @@ function solarCalc(d){
   var ramc=sNorm(Astronomy.SiderealTime(t)*15+nc[2]), eps=23.4393*Math.PI/180, r=ramc*Math.PI/180, f=nc[1]*Math.PI/180;
   var asc=sNorm(Math.atan2(Math.cos(r),-(Math.sin(r)*Math.cos(eps)+Math.tan(f)*Math.sin(eps)))*180/Math.PI);
   var sun=Astronomy.SunPosition(t).elon, moon=Astronomy.EclipticGeoMoon(t).lon, ven=Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body.Venus,t,true)).elon;
-  var ascS=Math.floor(asc/30), sunS=Math.floor(sun/30);
-  var local=new Date(t.date.getTime()+nc[3]*3600e3);
-  return {start:local, ascS:ascS, house:((sunS-ascS+12)%12)+1, moonS:Math.floor(moon/30), venS:Math.floor(ven/30), sunS:sunS, exact:!!d.time, city:nc[0]};
+  var ascS=Math.floor(asc/30), sunS=Math.floor(sun/30), cusps=placidus(ramc,nc[1],23.4393);
+  var local=utcToLocal(nc,t.date.getTime());
+  return {start:local, ascS:ascS, cusps:cusps, house:houseIn(sun,{cusps:cusps,ascS:ascS}), moonS:Math.floor(moon/30), venS:Math.floor(ven/30), sunS:sunS, exact:!!d.time, city:nc[0], t:t, nc:nc, edge:edge};
 }
 function solarDate(dt){var m=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];return dt.getUTCDate()+' '+m[dt.getUTCMonth()]+' '+dt.getUTCFullYear()+' в '+('0'+dt.getUTCHours()).slice(-2)+':'+('0'+dt.getUTCMinutes()).slice(-2)}
 function solarCard(w,res){
   var cls=w==='A'?'a':'b';
   return '<div class="sec"><div class="sechead" style="padding-top:14px"><h3>'+esc(nm(w))+'</h3><span class="chip '+(w==='A'?'grumpy':'ok')+'">Солнце '+esc(SIGNS_IN[res.sunS])+'</span></div>'+
-    '<p class="small muted">Ваш солярный год начался '+esc(solarDate(res.start))+' ('+esc(res.city)+')'+(res.exact?'':'. Без точного времени рождения прогноз приблизительный')+'.</p>'+
+    '<p class="small muted">Ваш солярный год начался '+esc(solarDate(res.start))+' ('+esc(res.city)+')'+(res.exact?'':'. Без точного времени рождения прогноз приблизительный')+'.</p>'+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
     '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+esc(ASC_T[res.ascS])+'</p>'+
     '<div class="sci"><span class="t">☀️ Главная сфера года · '+res.house+'-й дом</span><p>'+esc(HOUSE_T[res.house-1].charAt(0).toUpperCase()+HOUSE_T[res.house-1].slice(1))+'.</p></div>'+
     '<p class="small"><b>🌙 Эмоции:</b> Луна года '+esc(SIGNS_IN[res.moonS])+' — '+esc(MOON_T[res.moonS])+'.</p>'+
@@ -619,6 +647,88 @@ function solarCouple(a,b){
   if(a.venS%4===b.venS%4) lines.push('У обоих Венера в стихии '+ELEM[a.venS%4]+': в любви в этом году вы говорите на одном языке.');
   else lines.push('Венера у вас в разных стихиях ('+ELEM[a.venS%4]+' и '+ELEM[b.venS%4]+'): вы любите по-разному, и это стоит проговорить.');
   return '<div class="arch"><div class="lbl">Соляр пары</div><h2>Ваш общий год</h2>'+lines.map(function(l){return '<p>'+esc(l)+'</p>'}).join('')+'</div>';
+}
+
+/* ===== ПОЛНЫЙ СОЛЯР ===== */
+/* Часовой пояс по координатам (tz.js) + историческое смещение из базы браузера (летнее время СССР, 2011–2014 и т.д.) */
+function tzAt(c){try{return window.tzlookup?tzlookup(c[1],c[2]):null}catch(e){return null}}
+function offAt(tz,ms){
+  try{var v={};new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'}).formatToParts(new Date(ms)).forEach(function(x){v[x.type]=+x.value});
+    return (Date.UTC(v.year,v.month-1,v.day,v.hour%24,v.minute,v.second)-Math.floor(ms/1000)*1000)/36e5}catch(e){return null}
+}
+/* местное время рождения → UTC; если пояс не определился — старое смещение из списка городов */
+function localToUtc(c,base){var tz=tzAt(c),o=tz&&offAt(tz,base);if(o==null)return base-c[3]*36e5;var u=base-o*36e5,o2=offAt(tz,u);return base-(o2==null?o:o2)*36e5}
+function utcToLocal(c,ms){var tz=tzAt(c),o=tz&&offAt(tz,ms);return new Date(ms+(o==null?c[3]:o)*36e5)}
+function lonOf(body,t){return body==='Sun'?Astronomy.SunPosition(t).elon:body==='Moon'?Astronomy.EclipticGeoMoon(t).lon:Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body[body],t,true)).elon}
+var PL=[['Sun','☀️','Главная сфера года'],['Moon','🌙','Где ваши эмоции'],['Mercury','💬','О чём будет болеть голова'],['Venus','💗','Любовь и удовольствия'],['Mars','🔥','Куда пойдёт энергия'],['Jupiter','🍀','Где повезёт'],['Saturn','🪨','Где придётся потрудиться']];
+var PL_T={
+Moon:['Вы чувствительнее обычного, и это видно по лицу. Важно, чтобы близкие замечали ваше настроение.','Спокойствие даёт финансовая стабильность. Тревога о деньгах — повод составить план, а не паниковать.','Эмоции выходят в разговорах. Помогают долгие переписки и прогулки.','Тянет домой: хочется уюта, семьи и тишины. Дом — главное место силы в этом году.','Хочется радости, праздника и внимания. Настроение поднимают свидания и хобби.','Настроение зависит от порядка в делах и самочувствия. Помогают режим и забота о себе.','Ваше настроение сильно зависит от партнёра. Говорите о чувствах вслух, а не намёками.','Чувства глубокие, иногда тяжёлые. Важно доверять и не держать всё в себе.','Грусть лечат поездки и новые впечатления. Если накрыло — меняйте обстановку.','Много переживаний из-за работы и чужих оценок. Не путайте рабочие неудачи с личными.','Поддержка приходит от друзей. Хочется больше общения и общих планов.','Нужно больше времени наедине с собой. Это не холодность, а способ зарядиться.'],
+Mercury:['Много говорите о себе и своих планах. Хороший год, чтобы научиться ясно говорить, чего хотите.','Голова занята деньгами: считаете, сравниваете, ищете подработку. Самое время составить финансовый план.','Много переписок, звонков и коротких поездок. Хорошо для учёбы, курсов, сдачи на права.','Мысли крутятся вокруг дома: ремонт, переезд, разговоры с родными. Обсудите наконец, как вы хотите жить.','Флирт, переписки, творческие идеи. Хорошо писать, снимать, придумывать — и шутить вдвоём.','Голова в работе и бытовых задачах: списки, планы, порядок. Год, чтобы разобрать завалы.','Главные разговоры года — с партнёром: договорённости, общие планы, иногда споры. Лучше проговаривать, чем копить.','Мысли о серьёзном: общие деньги, кредиты, доверие. Время для честных разговоров о том, о чём обычно молчат.','Тянет учиться и узнавать новое: курсы, языки, поездки.','Много думаете о карьере: резюме, переговоры, планы роста. Удачно для собеседований и выступлений.','Много общения с друзьями и единомышленниками, новые идеи из чатов и компаний. Хорошо строить планы на будущее.','Мысли уходят внутрь: больше размышлений, меньше разговоров. Полезно вести заметки и не решать важное на бегу.'],
+Venus:['Вы привлекательнее обычного, и это замечают. Хороший год обновить стиль и чаще выходить в люди вместе.','Любовь через подарки и комфорт. Хочется тратить на красивое — договоритесь о бюджете на радости.','Любовь в словах: милые сообщения, комплименты, спонтанные поездки на выходные.','Любовь через уют: хочется вить гнездо, готовить вместе, звать гостей. Хорошо для обустройства общего дома.','Один из самых романтичных годов: свидания, флирт, праздники. Не забывайте ухаживать друг за другом.','Любовь в заботе о мелочах: кофе в постель, помощь с делами. Романтика будничная, но настоящая.','Отношения в центре года. Хорошее время для серьёзных шагов: съехаться, обручиться, пожениться.','Чувства глубже и сильнее, больше страсти и ревности. Держится всё на доверии — и на честном разговоре об общих деньгах.','Любовь-приключение: поездки и всё новое вдвоём. Лучшие моменты года будут в дороге.','Вас видят как пару, возможны знакомства с важными людьми. Работа и личное могут переплетаться.','Любовь как дружба: общие компании, друзья, совместные планы.','Хочется тишины вдвоём: спокойные вечера, отдых без людей. Не все чувства проговариваются — спрашивайте друг друга.'],
+Mars:['Энергии много, терпения меньше. Вы решительнее, но и вспыльчивее — считайте до десяти.','Энергия уходит на заработок. Доход можно заметно поднять, но и споры о тратах вероятнее.','Много мелких дел и движения, резкие слова в переписках. Перечитывайте сообщения перед отправкой.','Энергия идёт в дом: ремонт, переезд, перестановки. Возможны трения с родными — делите территорию спокойно.','Страсть, азарт, спорт, хобби. Отличный год для активного отдыха вдвоём, только без лишнего риска.','Энергия в работу: много задач, высокий темп. Следите за отдыхом и не срывайтесь на близких из-за усталости.','Самые жаркие споры года — в паре. Это не страшно, если спорить о деле, а не друг с другом.','Сильные чувства и большие перемены. Возможны споры об общих деньгах — договаривайтесь заранее.','Энергия на поездки, учёбу и новые цели. Можно горячо спорить о взглядах — не обязательно соглашаться во всём.','Энергия на карьеру: амбиции, рывок, конкуренция. Не приносите рабочий стресс домой.','Энергия в друзей и общие проекты. Возможны трения в компаниях — держитесь своих людей.','Энергия уходит внутрь, бывает усталость без причины. Берегите силы и не копите обиды молча.'],
+Jupiter:['Год личного роста: больше уверенности и новых возможностей. Говорите «да» интересным предложениям.','Удача в деньгах: шанс увеличить доход или найти новый источник. Главное — не растратить всё на радостях.','Везёт в учёбе, переговорах и поездках. Полезные знакомства — рядом и в соцсетях.','Удача в доме и семье: переезд, своё жильё, пополнение. Дома становится просторнее и спокойнее.','Удача в любви и творчестве. Хороший год для радостей и хобби, а кому-то и для пополнения в семье.','Удача в работе: новая должность, удобный график, полезные привычки. Хорошо заняться здоровьем.','Удача в партнёрстве: отношения крепнут, договорённости складываются. Хороший год для свадьбы.','Удача в общих деньгах: доход партнёра, крупные покупки, инвестиции. Перемены идут на пользу.','Удача в путешествиях, учёбе и всём новом. Год, чтобы поехать далеко.','Удача в карьере: рост, признание, повышение. Самое время заявить о себе.','Удача через друзей и знакомых. Рассказывайте о своих планах — помощь придёт через людей.','Тихая удача: помощь приходит как будто сама. Хороший год для отдыха и восстановления.'],
+Saturn:['Год ответственности за себя: режим, дисциплина, взрослые решения. Тяжеловато, но результат останется надолго.','Деньги требуют порядка: бюджет, подушка безопасности, меньше импульсивных покупок.','Нужно доучиться, разобраться с документами, наладить отношения с родственниками. Скучно, но полезно.','Дом и семья требуют сил: ремонт, забота о родителях, бытовые вопросы. Вы закладываете фундамент.','Романтика требует усилий: меньше спонтанности, больше вложений в отношения. Не забывайте отдыхать.','Много работы и рутины. Берегите здоровье и не берите на себя лишнего.','Отношения проходят проверку на прочность. Если договариваться, а не обижаться, пара станет крепче.','Серьёзные вопросы общих денег и долгов. Разберитесь с кредитами и договорённостями — станет легче.','Учёба и поездки даются трудом, зато результат настоящий. Хорошо получить диплом или сертификат.','Карьера требует много сил: ответственность растёт, но и признание будет заслуженным.','Пересмотр круга общения: останутся только свои. Планы на будущее становятся реалистичнее.','Год подведения итогов. Не гоните себя: лучше закончить старое, чем хвататься за новое.']
+};
+var MONTH_T=['время для себя: новые начинания, обновить образ, заявить о желаниях','деньги: бюджет, крупные покупки, заработок','общение и суета: переписки, короткие поездки, учёба','дом: уют, семья, ремонт, спокойные вечера','романтика: свидания, праздники, хобби и отдых','работа: дела, режим, здоровье — меньше развлечений','партнёрство: важные разговоры и совместные решения','перемены: серьёзные вопросы, общие деньги, глубокие чувства','путешествия и новое: поездки, учёба, новые впечатления','карьера: работа, амбиции, важные встречи','друзья: компании, общие планы, новые знакомства','отдых: замедлиться, выспаться, подвести итоги'];
+var RETRO_T={Mercury:['Меркурий','перепроверяйте билеты, договоры и сообщения. Хорошо доделывать старое, а не начинать новое. Могут объявиться старые знакомые.'],Venus:['Венера','чувства пересматриваются, может напомнить о себе прошлое. Не лучшее время для резких перемен во внешности и дорогих покупок.'],Mars:['Марс','энергия буксует, дела затягиваются, споры вспыхивают на пустом месте. Не начинайте ремонт и большие проекты — доделывайте начатое.']};
+var MON_S=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'], MON_N=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+function dShort(d){return d.getUTCDate()+' '+MON_S[d.getUTCMonth()]}
+function signOf(l){return Math.floor(sNorm(l)/30)}
+/* ретро-периоды за солярный год: суточный шаг, ищем смену направления движения */
+function retroOf(body,t0,c){
+  var out=[],prev=lonOf(body,t0),st=null,step=1;
+  for(var i=1;i<=366;i+=step){var t=t0.AddDays(i),l=lonOf(body,t),d=((l-prev+540)%360)-180;
+    if(d<0&&!st)st=t; if(d>=0&&st){out.push([st,t]);st=null} prev=l;}
+  if(st)out.push([st,t0.AddDays(366)]);
+  return out.map(function(p){return [utcToLocal(c,p[0].date.getTime()),utcToLocal(c,p[1].date.getTime())]});
+}
+function solarFull(r){
+  var t=r.t, c=r.nc, pos={};
+  PL.forEach(function(p){pos[p[0]]=lonOf(p[0],t)});
+  /* помесячно: транзитное Солнце проходит дома соляра; границы — входы Солнца в знаки */
+  /* 13 отрезков: остаток знака Солнца после дня рождения, 11 полных знаков, начало знака Солнца до следующего дня рождения */
+  var months=[], from=t, h0=houseIn(pos.Sun,r), end=Astronomy.SearchSunLongitude(pos.Sun,t.AddDays(360),20)||t.AddDays(365.2422);
+  var cuspL=function(h){return r.cusps?r.cusps[h%12]:((r.ascS+h)%12)*30}; /* начало дома h+1 */
+  for(var k=0;k<=12;k++){var hh=((h0-1+k)%12)+1, nx=k<12?Astronomy.SearchSunLongitude(cuspL(hh),from.AddDays(1),60):end;if(!nx||nx.date>end.date)nx=end;
+    if(nx.date-from.date>12*36e5)months.push({from:utcToLocal(c,from.date.getTime()),to:utcToLocal(c,nx.date.getTime()-864e5),house:hh}); from=nx; if(nx===end)break;}
+  return {pos:pos, months:months, retro:{Mercury:retroOf('Mercury',t,c),Venus:retroOf('Venus',t,c),Mars:retroOf('Mars',t,c)}};
+}
+function solarFullCard(w,res){
+  var f=solarFull(res), h='<div class="sec"><div class="sechead" style="padding-top:14px"><h3>'+esc(nm(w))+'</h3><span class="chip '+(w==='A'?'grumpy':'ok')+'">Солнце '+esc(SIGNS_IN[res.sunS])+'</span></div>'+
+    '<p class="small muted">Солярный год: '+esc(solarDate(res.start))+' — следующий день рождения ('+esc(res.city)+')'+(res.exact?'':'. Без точного времени рождения дома могут сдвинуться — читайте как общий ориентир')+'.</p>'+(res.edge?'<p class="small note">В ваш день рождения Солнце переходило из знака '+esc(SIGNS[res.edge[0]])+' в знак '+esc(SIGNS[res.edge[1]])+'. Без времени рождения мы посчитали на полдень — укажите время, чтобы знак определился точно.</p>':'')+
+    '<div class="big">Асцендент года '+esc(SIGNS_IN[res.ascS])+'</div><p>'+esc(ASC_T[res.ascS])+'</p>'+
+    '<div class="lbl" style="margin-top:6px">Планеты года</div>';
+  PL.forEach(function(p){var hs=houseIn(f.pos[p[0]],res), txt=p[0]==='Sun'?HOUSE_T[hs-1].charAt(0).toUpperCase()+HOUSE_T[hs-1].slice(1)+'.':PL_T[p[0]][hs-1];
+    h+='<div class="sci"><span class="t">'+p[1]+' '+esc(p[2])+' · '+esc(PLN[p[0]])+' '+esc(SIGNS_IN[signOf(f.pos[p[0]])])+', '+hs+'-й дом</span><p>'+esc(txt)+'</p></div>'});
+  h+='<div class="lbl" style="margin-top:6px">Ваш год по месяцам</div><div class="mlist">';
+  f.months.forEach(function(m){h+='<p class="small"><b>'+esc(dShort(m.from))+' — '+esc(dShort(m.to))+'</b> · '+esc(MONTH_T[m.house-1])+'</p>'});
+  h+='</div><div class="lbl" style="margin-top:6px">Ретроградные периоды</div>';
+  var any=false;
+  ['Mercury','Venus','Mars'].forEach(function(b){if(!f.retro[b].length)return;any=true;
+    h+='<p class="small"><b>'+RETRO_T[b][0]+' назад: '+f.retro[b].map(function(p){return esc(dShort(p[0]))+' — '+esc(dShort(p[1]))}).join(', ')+'.</b> '+esc(RETRO_T[b][1].charAt(0).toUpperCase()+RETRO_T[b][1].slice(1))+'</p>'});
+  if(!any)h+='<p class="small">В этом году без ретроградных периодов у Меркурия, Венеры и Марса — редкая удача.</p>';
+  return h+'</div>';
+}
+var PLN={Sun:'Солнце',Moon:'Луна',Mercury:'Меркурий',Venus:'Венера',Mars:'Марс',Jupiter:'Юпитер',Saturn:'Сатурн'};
+function aspectKind(a,b){var d=Math.abs(signOf(a)-signOf(b));d=Math.min(d,12-d);return ['conj','other','sext','square','trine','other','opp'][d]}
+var VM_T={conj:'Венера {X} и Марс {Y} в одном знаке — сильное притяжение. Страсти в этом году хватит.',trine:'Венера {X} и Марс {Y} в одной стихии — желания совпадают легко, вы понимаете друг друга с полуслова.',sext:'Венера {X} и Марс {Y} хорошо дополняют друг друга — легко договариваться о свиданиях и радостях.',square:'Венера {X} и Марс {Y} в напряжённом аспекте — искры и трения: хочется разного. Решается разговором, а не обидой.',opp:'Венера {X} и Марс {Y} напротив друг друга — притяжение противоположностей: вы очень разные в желаниях, и это заводит.',other:'Венера {X} и Марс {Y} говорят на разных языках — не страшно, просто проговаривайте ожидания.'};
+function solarCoupleFull(a,b){
+  var fa=solarFull(a), fb=solarFull(b), na=nm('A'), nb=nm('B'), L=[];
+  var k1=aspectKind(fa.pos.Venus,fb.pos.Mars), k2=aspectKind(fb.pos.Venus,fa.pos.Mars);
+  if(k1===k2)L.push(VM_T[k1].replace('Венера {X} и Марс {Y}','У вас обоих Венера одного и Марс другого').replace(' в одном знаке',' в одном знаке,').replace(' — ',' — '));
+  else{L.push(VM_T[k1].replace('{X}','('+na+')').replace('{Y}','('+nb+')'));L.push(VM_T[k2].replace('{X}','('+nb+')').replace('{Y}','('+na+')'));}
+  var ma=signOf(fa.pos.Moon)%4, mb=signOf(fb.pos.Moon)%4;
+  L.push(ma===mb?'Луны года в одной стихии — эмоционально вы на одной волне, легко чувствуете настроение друг друга.':(ma+mb===2||ma+mb===4)?'Луны года в дружественных стихиях — вам легко поддерживать друг друга.':'Луны года в разных стихиях — переживаете по-разному: одному нужно поговорить, другому побыть одному. Договоритесь об этом заранее.');
+  /* лучшие месяцы: транзитное Солнце в домах соляра каждого (середина месяца) */
+  var SC=[1,0,0,0,2,-1,2,-1,1,0,1,-1], now=new Date(), rows=[];
+  for(var i=0;i<12;i++){var y=now.getUTCFullYear(),m=now.getUTCMonth()+i,d=new Date(Date.UTC(y,m,15)),sl=Astronomy.SunPosition(Astronomy.MakeTime(d)).elon;
+    var ha=houseIn(sl,a), hb=houseIn(sl,b); rows.push({d:d,s:SC[ha-1]+SC[hb-1],ha:ha,hb:hb});}
+  var best=rows.slice().sort(function(x,y){return y.s-x.s}).slice(0,3).sort(function(x,y){return x.d-y.d}), worst=rows.slice().sort(function(x,y){return x.s-y.s})[0];
+  var mname=function(r){return MON_N[r.d.getUTCMonth()].toLowerCase()+(r.d.getUTCFullYear()!==now.getUTCFullYear()?' '+r.d.getUTCFullYear():'')};
+  var h='<div class="arch" style="text-align:left"><div class="lbl" style="text-align:center">Полный соляр пары</div><h2 style="text-align:center">Ваш общий год</h2>'+L.map(function(l){return '<p>'+esc(l)+'</p>'}).join('')+
+    '<div class="sci" style="text-align:left"><span class="t">💞 Лучшие месяцы для вас двоих</span>'+best.map(function(r){return '<p class="small"><b>'+esc(mname(r).charAt(0).toUpperCase()+mname(r).slice(1))+'</b>: '+esc(na)+' — '+esc(MONTH_T[r.ha-1].split(':')[0])+', '+esc(nb)+' — '+esc(MONTH_T[r.hb-1].split(':')[0])+'.</p>'}).join('')+'</div>';
+  if(worst.s<0)h+='<div class="sci" style="text-align:left"><span class="t">🫖 Месяц, когда беречь друг друга</span><p class="small"><b>'+esc(mname(worst).charAt(0).toUpperCase()+mname(worst).slice(1))+'</b>: '+esc(na)+' — '+esc(MONTH_T[worst.ha-1].split(':')[0])+', '+esc(nb)+' — '+esc(MONTH_T[worst.hb-1].split(':')[0])+'. Меньше планов, больше терпения и отдыха.</p></div>';
+  return h+'</div>';
 }
 
 /* ===== РАСКРЫТИЕ ===== */
@@ -715,8 +825,9 @@ function bind(){
     };
     return;
   }
-  if(S.step==='solarres'){go.onclick=function(){S.step=FG?'fbintro':'fin';render()};return}
-  if(S.step==='solores'){go.onclick=function(){S.a='';S.solar.A={};S.step='solo';render()};return}
+  if(S.step==='solarres'){document.getElementById('full').onclick=function(){S.fullSolo=false;S.step='solarfull';render();window.scrollTo(0,0)};go.onclick=function(){S.step=FG?'fbintro':'fin';render()};return}
+  if(S.step==='solarfull'){go.onclick=function(){if(S.fullSolo){S.step='solores'}else{S.step=FG?'fbintro':'fin'}render();window.scrollTo(0,0)};return}
+  if(S.step==='solores'){document.getElementById('full').onclick=function(){S.fullSolo=true;S.step='solarfull';render();window.scrollTo(0,0)};go.onclick=function(){S.a='';S.solar.A={};S.step='solo';render()};return}
   if(S.step==='solo'){
     var nmI=document.getElementById('soloName');
     var busy3=false;
